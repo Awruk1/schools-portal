@@ -1,0 +1,9 @@
+---
+const { name, type, studentsCount, id } = Astro.props;
+---
+<div class="card">
+  <h3 style="color: var(--primary);">{name}</h3>
+  <p><strong>Typ:</strong> {type}</p>
+  <p><strong>Liczba uczniów:</strong> {studentsCount}</p>
+  <a href={`/schools/${id}`} class="btn">Szczegóły</a>
+</div>

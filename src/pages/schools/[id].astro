@@ -1,0 +1,51 @@
+---
+import '../../styles/global.css';
+
+// 1. Pobieramy ID z adresu URL strony
+const { id } = Astro.params;
+
+// 2. Odpytujemy nasze nowe API o dane konkretnej szkoły
+const response = await fetch(new URL(`/api/schools/${id}`, Astro.url));
+
+// 3. Obsługa błędu, jeśli wpiszemy w URL błędne ID
+if (response.status === 404) {
+  return Astro.redirect('/404');
+}
+
+// 4. Rozpakowanie danych JSON
+const school = await response.json();
+---
+
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{school.name} - Szczegóły</title>
+  </head>
+  <body>
+    <header style="padding: 2rem 1rem;">
+      <h1>{school.name}</h1>
+      <p style="color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem;">
+        {school.type}
+      </p>
+    </header>
+    
+    <main class="container">
+      <!-- Używamy klasy card, którą stworzyłeś wcześniej w global.css -->
+      <div class="card" style="max-width: 700px; margin: 0 auto; font-size: 1.1rem;">
+        <p style="margin-bottom: 0.5rem;"><strong>📍 Adres:</strong> {school.address || "Brak danych"}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>👨‍🎓 Liczba uczniów:</strong> {school.students_count || "Brak danych"}</p>
+        <p style="margin-bottom: 1.5rem;"><strong>🔗 Strona WWW: </strong> 
+          <a href={school.website} target="_blank" style="color: var(--primary); text-decoration: none;">
+            {school.website}
+          </a>
+        </p>
+        
+        <!-- Zgodnie z wymaganiami projektu: Przycisk powrotu na listę -->
+        <div style="text-align: center; margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
+          <a href="/schools" class="btn">Powrót do listy szkół</a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

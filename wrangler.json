@@ -1,0 +1,11 @@
+{
+  "name": "schools-portal",
+  "compatibility_date": "2024-03-20",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "schools-db",
+      "database_id": "552a5c8a-5ddd-4485-97e2-f81fe4a94d93"
+    }
+  ]
+}

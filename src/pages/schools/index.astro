@@ -1,0 +1,82 @@
+---
+import '../../styles/global.css';
+import SchoolCard from '../../components/SchoolCard.astro';
+import Map from '../../components/Map.astro';
+
+interface School {
+  id: number;
+  name: string;
+  type: string;
+  students_count: number;
+  latitude: number;
+  longitude: number;
+}
+
+// Sprawdzamy, czy w pasku adresu jest aktywny filtr
+const currentFilter = Astro.url.searchParams.get('type') || '';
+
+// Budujemy URL do API
+const apiUrl = new URL('/api/schools', Astro.url);
+if (currentFilter) apiUrl.searchParams.set('type', currentFilter);
+
+const response = await fetch(apiUrl);
+const schools: School[] = await response.json();
+---
+
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Lista Szkół - Powiat Garwoliński</title>
+    <style>
+      .filters {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+      .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--primary);
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--primary);
+        font-weight: bold;
+      }
+      .filter-btn.active {
+        background-color: var(--primary);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <header style="padding: 2rem 1rem;">
+      <h1>Lista Szkół</h1>
+      <a href="/" style="color: var(--primary);">← Wróć na stronę główną</a>
+    </header>
+    
+    <main class="container">
+      
+      <div class="filters">
+        <a href="/schools" class={`filter-btn ${currentFilter === '' ? 'active' : ''}`}>Wszystkie</a>
+        <a href="/schools?type=liceum" class={`filter-btn ${currentFilter === 'liceum' ? 'active' : ''}`}>Licea</a>
+        <a href="/schools?type=technikum" class={`filter-btn ${currentFilter === 'technikum' ? 'active' : ''}`}>Technika</a>
+        <a href="/schools?type=zawodowa" class={`filter-btn ${currentFilter === 'zawodowa' ? 'active' : ''}`}>Szkoły Branżowe</a>
+      </div>
+
+      <Map schools={schools} />
+
+      <div class="grid">
+        {schools.map((school) => (
+          <SchoolCard 
+            name={school.name} 
+            type={school.type} 
+            studentsCount={school.students_count} 
+            id={school.id} 
+          />
+        ))}
+      </div>
+    </main>
+  </body>
+</html>

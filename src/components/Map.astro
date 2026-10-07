@@ -1,0 +1,44 @@
+---
+// Komponent przyjmuje listę szkół jako właściwość (prop)
+const { schools } = Astro.props;
+---
+
+<!-- Pobieramy style i skrypty Leaflet bezpośrednio z CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Pojemnik na mapę -->
+<div id="map" style="height: 500px; width: 100%; border-radius: 8px; margin-bottom: 2rem; z-index: 1; border: 1px solid #e2e8f0;"></div>
+
+<!-- Skrypt inicjalizujący -->
+<script is:inline define:vars={{ schools }}>
+  // Czekamy, aż cała strona się załaduje
+  document.addEventListener('DOMContentLoaded', () => {
+    
+    // Tworzymy mapę i centrujemy ją na Garwolin (współrzędne 51.895, 21.615)
+    const map = L.map('map').setView([51.895, 21.615], 14);
+
+    // Ładujemy kafelki mapy z OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Iterujemy po liście szkół i dodajemy pinezki
+    schools.forEach(school => {
+      // Upewniamy się, że szkoła ma współrzędne
+      if (school.latitude && school.longitude) {
+        const marker = L.marker([school.latitude, school.longitude]).addTo(map);
+        
+        // Dodajemy dymek (popup) po kliknięciu w pinezkę
+        marker.bindPopup(`
+          <div style="font-size: 14px;">
+            <strong>${school.name}</strong><br>
+            <span style="color: #64748b; text-transform: uppercase; font-size: 11px;">${school.type}</span><br>
+            <a href="/schools/${school.id}" style="display: inline-block; margin-top: 5px; color: #2563eb; text-decoration: none; font-weight: bold;">Szczegóły &rarr;</a>
+          </div>
+        `);
+      }
+    });
+  });
+</script>

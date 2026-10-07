@@ -13,8 +13,10 @@ CREATE TABLE schools (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Dodajemy od razu testowe dane (tzw. seed), żebyś miał na czym pracować w kolejnych krokach:
+DELETE FROM schools;
 INSERT INTO schools (name, type, latitude, longitude, address, website, students_count) 
 VALUES 
-('I LO im. Marszałka Józefa Piłsudskiego', 'liceum', 51.8950, 21.6110, 'ul. Korczaka 10, Garwolin', 'https://1lo.garwolin.pl', 850),
-('Zespół Szkół nr 1 im. Bohaterów Westerplatte', 'technikum', 51.8985, 21.6150, 'ul. Kościuszki 53, Garwolin', 'https://zs1.garwolin.pl', 1200);
+('I Liceum Ogólnokształcące im. Marszałka Józefa Piłsudskiego w Garwolinie', 'liceum', 51.895544, 21.609995, 'ul. Długa 35, 08-400 Garwolin', 'https://lo1garwolin.edu.pl', 850),
+('Zespół Szkół nr 1 im. Bohaterów Westerplatte w Garwolinie', 'liceum, technikum', 51.904266, 21.607755, 'ul. Kościuszki 53, 08-400 Garwolin', 'https://zsgarwolin.pl', 1200),
+('Katolickie Liceum Ogólnokształcące im. Cypriana Kamila Norwida w Garwolinie', 'liceum', 51.898091, 21.616864, 'ul. Staszica 11, 08-400 Garwolin', 'http://klogarwo.pl', 300),
+('Zespół Szkół nr 2 im. Tadeusza Kościuszki w Garwolinie', 'technikum, zawodowa', 51.896764, 21.595117, 'ul. Żołnierzy II Armii Wojska Polskiego 20, 08-400 Garwolin', 'https://zsp2garwolin.pl', 950);
