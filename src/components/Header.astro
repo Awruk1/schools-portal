@@ -1,0 +1,108 @@
+---
+---
+<header class="main-header">
+  <div class="nav-container">
+    <a href="/" class="logo">🏫 Szkoły Garwolin</a>
+    
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+    
+    <nav class="nav-links" id="nav-links">
+      <a href="/">Strona Główna</a>
+      <a href="/schools">Baza Szkół i Mapa</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .main-header {
+    background-color: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+  }
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover {
+    color: var(--primary);
+  }
+  
+  /* Style dla przycisku hamburgera (domyślnie ukryty na komputerach) */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+  }
+  .hamburger-line {
+    width: 25px;
+    height: 3px;
+    background-color: var(--text);
+    transition: all 0.3s ease;
+  }
+
+  /* Breakpoint dla telefonów i małych tabletów */
+  @media (max-width: 768px) {
+    .hamburger {
+      display: flex;
+    }
+    .nav-links {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      gap: 1.5rem;
+    }
+    .nav-links.active {
+      display: flex;
+    }
+  }
+</style>
+
+<script is:inline>
+  // Prosty skrypt odpalający menu hamburgerowe
+  document.addEventListener('DOMContentLoaded', () => {
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('nav-links');
+    
+    hamburger?.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+  });
+</script>

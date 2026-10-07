@@ -1,31 +1,45 @@
 ---
 import '../styles/global.css';
+import Header from '../components/Header.astro';
 ---
 
 <html lang="pl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
+    <!-- Dodajemy naszą nową ikonkę w karcie przeglądarki -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
     <title>Szkoły Średnie Powiatu Garwolin</title>
   </head>
   <body>
-    <header>
-      <h1>Szkoły Średnie Powiatu Garwolin</h1>
-      <p>Interaktywna mapa i baza danych wszystkich szkół średnich w naszym powiecie.</p>
-      <a href="/schools" class="btn">Sprawdź szkoły</a>
-    </header>
+    <Header />
     
+    <section style="text-align: center; padding: 4rem 1rem; background-color: white; border-bottom: 1px solid #e2e8f0;">
+      <h1 style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">Szkoły Średnie Powiatu Garwolin</h1>
+      <p style="margin-bottom: 2rem; color: var(--text);">Interaktywna mapa i baza danych wszystkich szkół średnich w naszym powiecie.</p>
+      
+      <!-- Dodajemy zdjęcie Hero -->
+      <img 
+        src="/hero.jpg" 
+        alt="Krajobraz Garwolina" 
+        style="width: 100%; max-width: 800px; height: 350px; object-fit: cover; border-radius: 12px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); margin-bottom: 2rem;" 
+      />
+      
+      <br>
+      <a href="/schools" class="btn">Sprawdź szkoły</a>
+    </section>
+
     <main class="container">
       <section style="text-align: center; margin-top: 2rem;">
         <h2>W liczbach</h2>
         <p>Znajdź wymarzoną szkołę w swojej okolicy.</p>
         <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 2rem;">
           <div>
-            <h3 style="font-size: 2rem; color: var(--primary);">2+</h3>
-            <p>Szkół w bazie</p>
+            <h3 style="font-size: 2rem; color: var(--primary);">4</h3>
+            <p>Placówki w bazie</p>
           </div>
           <div>
-            <h3 style="font-size: 2rem; color: var(--primary);">2000+</h3>
+            <h3 style="font-size: 2rem; color: var(--primary);">3300+</h3>
             <p>Uczniów</p>
           </div>
         </div>
