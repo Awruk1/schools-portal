@@ -1,17 +1,35 @@
 ---
-
+import '../styles/global.css';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Szkoły Średnie Powiatu Garwolin</title>
+  </head>
+  <body>
+    <header>
+      <h1>Szkoły Średnie Powiatu Garwolin</h1>
+      <p>Interaktywna mapa i baza danych wszystkich szkół średnich w naszym powiecie.</p>
+      <a href="/schools" class="btn">Sprawdź szkoły</a>
+    </header>
+    
+    <main class="container">
+      <section style="text-align: center; margin-top: 2rem;">
+        <h2>W liczbach</h2>
+        <p>Znajdź wymarzoną szkołę w swojej okolicy.</p>
+        <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 2rem;">
+          <div>
+            <h3 style="font-size: 2rem; color: var(--primary);">2+</h3>
+            <p>Szkół w bazie</p>
+          </div>
+          <div>
+            <h3 style="font-size: 2rem; color: var(--primary);">2000+</h3>
+            <p>Uczniów</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>
