@@ -75,6 +75,8 @@ import { schools } from '../../data/schools.js';
           btn.classList.add('active');
 
           const filter = btn.getAttribute('data-filter');
+
+          // 1. Filtrowanie kafelków
           items.forEach(item => {
             const types = item.getAttribute('data-type');
             if (filter === 'all' || types.includes(filter)) {
@@ -83,6 +85,11 @@ import { schools } from '../../data/schools.js';
               item.style.display = 'none';
             }
           });
+
+          // 2. Filtrowanie pinezek na mapie
+          if (typeof window.filterMapMarkers === 'function') {
+            window.filterMapMarkers(filter);
+          }
         });
       });
     </script>
