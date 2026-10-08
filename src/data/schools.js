@@ -38,7 +38,7 @@ export const schools = [
   { 
     id: 4, 
     name: 'Zespół Szkół nr 2 im. Tadeusza Kościuszki w Garwolinie', 
-    type: 'technikum, zawodowa', 
+    type: 'technikum, branżowa', 
     latitude: 51.896764, 
     longitude: 21.595117, 
     address: 'ul. Żołnierzy II Armii Wojska Polskiego 20, 08-400 Garwolin', 
@@ -46,5 +46,91 @@ export const schools = [
     phone: '25 682 25 15',
     students_count: 950,
     specializations: ['Technik budownictwa', 'Technik żywienia', 'Technik pojazdów samochodowych', 'Branżowa: Mechanik, Elektryk']
+  },
+  {
+    id: 5,
+    name: 'Zespół Szkół im. Stanisława Staszica w Miętnem',
+    type: 'technikum, branżowa',
+    latitude: 51.921543,
+    longitude: 21.597512,
+    address: 'ul. Główna 49, 08-400 Miętne',
+    website: 'https://mietne.edu.pl',
+    phone: '+48 25 682 30 88',
+    students_count: 580,
+    specializations: [
+      'Technik mechanizacji rolnictwa i agrotroniki',
+      'Technik pojazdów samochodowych',
+      'Technik weterynarii',
+      'Technik logistyk',
+      'Technik grafiki i poligrafii cyfrowej',
+      'Technik architektury krajobrazu',
+      'Technik żywienia i usług gastronomicznych',
+      'Branżowa: Mechanik-operator maszyn rolniczych, Mechanik pojazdów samochodowych, Kierowca mechanik'
+    ]
+  },
+  {
+    id: 6,
+    name: 'Liceum Ogólnokształcące im. Joachima Lelewela w Żelechowie',
+    type: 'liceum',
+    latitude: 51.810521,
+    longitude: 21.895514,
+    address: 'ul. Szkolna 3, 08-430 Żelechów',
+    website: 'https://lozelechow.pl',
+    phone: '+48 25 754 11 44',
+    students_count: 280,
+    specializations: [
+      'Profil biologiczno-chemiczny (medyczny)',
+      'Profil matematyczno-fizyczny (politechniczny)',
+      'Profil humanistyczny (język polski, historia)',
+      'Profil menedżersko-językowy (matematyka, geografia, język angielski)'
+    ]
+  },
+  {
+    id: 7,
+    name: 'Zespół Szkół Ponadpodstawowych im. Ignacego Wyssogoty Zakrzewskiego w Żelechowie',
+    type: 'technikum, branżowa',
+    latitude: 51.812234,
+    longitude: 21.905642,
+    address: 'ul. Marszałka Józefa Piłsudskiego 45, 08-430 Żelechów',
+    website: 'https://zspzelechow.pl',
+    phone: '+48 25 754 11 68',
+    students_count: 350,
+    specializations: [
+      'Technik informatyk',
+      'Technik ekonomista',
+      'Technik handlowiec',
+      'Technik pojazdów samochodowych',
+      'Technik żywienia i usług gastronomicznych',
+      'Branżowa: Klasa wielozawodowa (mechanik, stolarz, kucharz, fryzjer, ślusarz)'
+    ]
+  },
+  {
+    id: 8,
+    name: 'Zespół Szkół Ponadpodstawowych im. Tadeusza Kościuszki w Sobolewie',
+    type: 'liceum, branżowa',
+    latitude: 51.751241,
+    longitude: 21.668512,
+    address: 'ul. Kościuszki 19, 08-460 Sobolew',
+    website: 'https://zspsobolew.pl',
+    phone: '+48 25 682 50 15',
+    students_count: 180,
+    specializations: [
+      'Liceum: profil ogólny (rozszerzenia: j. angielski, geografia, biologia, WOS)',
+      'Branżowa: Oddział wielozawodowy (przygotowanie zawodowe u pracodawców)'
+    ]
+  },
+  {
+    id: 9,
+    name: 'Liceum Ogólnokształcące w Zespole Szkół nr 1 im. Szarych Szeregów w Łaskarzewie',
+    type: 'liceum',
+    latitude: 51.791523,
+    longitude: 21.593041,
+    address: 'ul. Alejowa 23, 08-450 Łaskarzew',
+    website: 'https://zs1laskarzew.pl',
+    phone: '+48 25 684 51 14',
+    students_count: 35,
+    specializations: [
+      'Profil ogólny (bloki rozszerzeń: język angielski, geografia, wiedza o społeczeństwie)'
+    ]
   }
 ];

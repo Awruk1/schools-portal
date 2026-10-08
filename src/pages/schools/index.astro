@@ -46,7 +46,7 @@ import { schools } from '../../data/schools.js';
         <button class="filter-btn active" data-filter="all">Wszystkie</button>
         <button class="filter-btn" data-filter="liceum">Licea</button>
         <button class="filter-btn" data-filter="technikum">Technika</button>
-        <button class="filter-btn" data-filter="zawodowa">Szkoły Branżowe</button>
+        <button class="filter-btn" data-filter="branżowa">Szkoły Branżowe</button>
       </div>
 
       <Map schools={schools} />
@@ -76,17 +76,15 @@ import { schools } from '../../data/schools.js';
 
           const filter = btn.getAttribute('data-filter');
 
-          // 1. Filtrowanie kafelków
           items.forEach(item => {
-            const types = item.getAttribute('data-type');
-            if (filter === 'all' || types.includes(filter)) {
-              item.style.display = 'block';
-            } else {
-              item.style.display = 'none';
-            }
+            const types = item.getAttribute('data-type') || '';
+            const matches = (filter === 'all') || 
+                            (filter === 'branżowa' && (types.includes('branżowa') || types.includes('zawodowa'))) ||
+                            types.includes(filter);
+
+            item.style.display = matches ? 'block' : 'none';
           });
 
-          // 2. Filtrowanie pinezek na mapie
           if (typeof window.filterMapMarkers === 'function') {
             window.filterMapMarkers(filter);
           }

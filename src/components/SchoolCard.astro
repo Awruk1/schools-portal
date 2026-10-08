@@ -1,13 +1,13 @@
 ---
 const { name, type, studentsCount, id } = Astro.props;
 
-// Rozbijamy string typu na pojedyncze tagi i dopasowujemy ikony
 const typesList = type.split(',').map((t: string) => t.trim());
 
 const typeIcons: Record<string, { label: string, icon: string, color: string }> = {
   liceum: { label: 'Liceum', icon: '🎓', color: '#2563eb' },
   technikum: { label: 'Technikum', icon: '⚙️', color: '#059669' },
   zawodowa: { label: 'Szkoła Branżowa', icon: '🔧', color: '#d97706' },
+  branżowa: { label: 'Szkoła Branżowa', icon: '🔧', color: '#d97706' },
 };
 ---
 

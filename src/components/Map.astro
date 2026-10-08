@@ -5,11 +5,12 @@ const { schools } = Astro.props;
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<div id="map" style="height: 500px; width: 100%; border-radius: 8px; margin-bottom: 2rem; z-index: 1; border: 1px solid #e2e8f0;"></div>
+<div id="map" style="height: 520px; width: 100%; border-radius: 8px; margin-bottom: 2rem; z-index: 1; border: 1px solid #e2e8f0;"></div>
 
 <script is:inline define:vars={{ schools }}>
   document.addEventListener('DOMContentLoaded', () => {
-    const map = L.map('map').setView([51.898, 21.605], 14);
+    // Środek powiatu garwolińskiego
+    const map = L.map('map').setView([51.84, 21.75], 11);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -17,6 +18,7 @@ const { schools } = Astro.props;
     }).addTo(map);
 
     const markers = [];
+    const leafletMarkers = [];
 
     schools.forEach(school => {
       if (school.latitude && school.longitude) {
@@ -25,27 +27,34 @@ const { schools } = Astro.props;
         marker.bindPopup(`
           <div style="font-size: 14px;">
             <strong>${school.name}</strong><br>
-            <span style="color: #64748b; text-transform: uppercase; font-size: 11px;">${school.type}</span><br>
+            <span style="color: #64748b; font-size: 11px;">${school.address}</span><br>
             <a href="/schools/${school.id}" style="display: inline-block; margin-top: 5px; color: #2563eb; text-decoration: none; font-weight: bold;">Szczegóły &rarr;</a>
           </div>
         `);
 
         marker.addTo(map);
         markers.push({ marker, type: school.type });
+        leafletMarkers.push(marker);
       }
     });
 
-    // Funkcja filtrująca warstwy na mapie
+    // Automatyczne kadrowanie mapy, by objąć Garwolin, Miętne, Żelechów, Sobolew i Łaskarzew
+    if (leafletMarkers.length > 0) {
+      const group = L.featureGroup(leafletMarkers);
+      map.fitBounds(group.getBounds().pad(0.08));
+    }
+
+    // Funkcja filtrująca warstwy na mapie (obsługuje zarówno 'branżowa' jak i 'zawodowa')
     window.filterMapMarkers = function(filter) {
       markers.forEach(({ marker, type }) => {
-        if (filter === 'all' || type.includes(filter)) {
-          if (!map.hasLayer(marker)) {
-            marker.addTo(map);
-          }
+        const matches = (filter === 'all') || 
+                        (filter === 'branżowa' && (type.includes('branżowa') || type.includes('zawodowa'))) ||
+                        type.includes(filter);
+
+        if (matches) {
+          if (!map.hasLayer(marker)) marker.addTo(map);
         } else {
-          if (map.hasLayer(marker)) {
-            map.removeLayer(marker);
-          }
+          if (map.hasLayer(marker)) map.removeLayer(marker);
         }
       });
     };
