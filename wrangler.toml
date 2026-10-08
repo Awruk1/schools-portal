@@ -1,9 +1,0 @@
-name = "schools-portal"
-pages_build_output_dir = "dist"
-compatibility_date = "2026-10-07"
-compatibility_flags = ["nodejs_compat"]
-
-[[d1_databases]]
-binding = "DB"
-database_name = "schools-db"
-database_id = "552a5c8a-5ddd-4485-97e2-f81fe4a94d93"

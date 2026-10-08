@@ -8,10 +8,10 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build && rm -rf .wrangler dist/server/wrangler.json",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
-  },
+},
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.4",
     "astro": "^7.3.5"
