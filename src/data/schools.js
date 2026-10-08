@@ -7,9 +7,14 @@ export const schools = [
     longitude: 21.609995, 
     address: 'ul. Długa 35, 08-400 Garwolin', 
     website: 'https://lo1garwolin.edu.pl', 
-    phone: '25 682 22 28',
+    phone: '+48 25 682 22 28',
     students_count: 850,
-    specializations: ['Matematyczno-fizyczny', 'Biologiczno-chemiczny', 'Humanistyczny', 'Geograficzno-językowy']
+    specializations: [
+      'Profil politechniczny (matematyka, fizyka)',
+      'Profil medyczny (biologia, chemia)',
+      'Profil humanistyczno-społeczny (język polski, historia, WOS)',
+      'Profil ekonomiczno-geograficzny (matematyka, geografia)'
+    ]
   },
   { 
     id: 2, 
@@ -19,9 +24,18 @@ export const schools = [
     longitude: 21.607755, 
     address: 'ul. Kościuszki 53, 08-400 Garwolin', 
     website: 'https://zsgarwolin.pl', 
-    phone: '25 682 30 88',
+    phone: '+48 25 682 30 88',
     students_count: 1200,
-    specializations: ['Technik informatyk', 'Technik ekonomista', 'Technik logistyk', 'LO: Profil mundurowy']
+    specializations: [
+      'II LO: Klasy mundurowe (policyjne) i prawno-językowe',
+      'Technik ekonomista',
+      'Technik rachunkowości',
+      'Technik hotelarstwa',
+      'Technik żywienia i usług gastronomicznych',
+      'Technik spedytor',
+      'Technik organizacji turystyki',
+      'Branżowa: Kucharz, Cukiernik, Sprzedawca, Magazynier-logistyk'
+    ]
   },
   { 
     id: 3, 
@@ -31,9 +45,13 @@ export const schools = [
     longitude: 21.616864, 
     address: 'ul. Staszica 11, 08-400 Garwolin', 
     website: 'http://klogarwo.pl', 
-    phone: '25 682 41 84',
+    phone: '+48 25 682 41 84',
     students_count: 300,
-    specializations: ['Humanistyczno-medialny', 'Politechniczny', 'Medyczny']
+    specializations: [
+      'Profil medyczno-przyrodniczy (biologia, chemia)',
+      'Profil politechniczno-ekonomiczny (matematyka, fizyka lub geografia)',
+      'Profil humanistyczno-prawny (język polski, historia lub WOS)'
+    ]
   },
   { 
     id: 4, 
@@ -43,18 +61,26 @@ export const schools = [
     longitude: 21.595117, 
     address: 'ul. Żołnierzy II Armii Wojska Polskiego 20, 08-400 Garwolin', 
     website: 'https://zsp2garwolin.pl', 
-    phone: '25 682 25 15',
+    phone: '+48 25 682 25 15',
     students_count: 950,
-    specializations: ['Technik budownictwa', 'Technik żywienia', 'Technik pojazdów samochodowych', 'Branżowa: Mechanik, Elektryk']
+    specializations: [
+      'Technik informatyk',
+      'Technik programista',
+      'Technik pojazdów samochodowych',
+      'Technik budownictwa',
+      'Technik elektryk',
+      'Technik usług fryzjerskich',
+      'Branżowa: Mechanik pojazdów samochodowych, Fryzjer, Elektryk, Monter zabudowy i robót wykończeniowych'
+    ]
   },
   {
     id: 5,
     name: 'Zespół Szkół im. Stanisława Staszica w Miętnem',
     type: 'technikum, branżowa',
-    latitude: 51.921543,
-    longitude: 21.597512,
+    latitude: 51.919516,
+    longitude: 21.579565,
     address: 'ul. Główna 49, 08-400 Miętne',
-    website: 'https://mietne.edu.pl',
+    website: 'http://mietne.edu.pl',
     phone: '+48 25 682 30 88',
     students_count: 580,
     specializations: [
@@ -72,11 +98,11 @@ export const schools = [
     id: 6,
     name: 'Liceum Ogólnokształcące im. Joachima Lelewela w Żelechowie',
     type: 'liceum',
-    latitude: 51.810521,
-    longitude: 21.895514,
+    latitude: 51.811931,
+    longitude: 21.901688,
     address: 'ul. Szkolna 3, 08-430 Żelechów',
-    website: 'https://lozelechow.pl',
-    phone: '+48 25 754 11 44',
+    website: 'http://lelewelzelechow.edu.pl',
+    phone: '+48 25 754 10 34',
     students_count: 280,
     specializations: [
       'Profil biologiczno-chemiczny (medyczny)',
@@ -89,11 +115,11 @@ export const schools = [
     id: 7,
     name: 'Zespół Szkół Ponadpodstawowych im. Ignacego Wyssogoty Zakrzewskiego w Żelechowie',
     type: 'technikum, branżowa',
-    latitude: 51.812234,
-    longitude: 21.905642,
+    latitude: 51.812166,
+    longitude: 21.898324,
     address: 'ul. Marszałka Józefa Piłsudskiego 45, 08-430 Żelechów',
-    website: 'https://zspzelechow.pl',
-    phone: '+48 25 754 11 68',
+    website: 'http://zspzelechow.pl',
+    phone: '+48 25 754 11 69',
     students_count: 350,
     specializations: [
       'Technik informatyk',
@@ -108,11 +134,11 @@ export const schools = [
     id: 8,
     name: 'Zespół Szkół Ponadpodstawowych im. Tadeusza Kościuszki w Sobolewie',
     type: 'liceum, branżowa',
-    latitude: 51.751241,
-    longitude: 21.668512,
+    latitude: 51.739529,
+    longitude: 21.671495,
     address: 'ul. Kościuszki 19, 08-460 Sobolew',
-    website: 'https://zspsobolew.pl',
-    phone: '+48 25 682 50 15',
+    website: 'https://losobolew.pl',
+    phone: '+48 25 682 50 49',
     students_count: 180,
     specializations: [
       'Liceum: profil ogólny (rozszerzenia: j. angielski, geografia, biologia, WOS)',
@@ -123,11 +149,11 @@ export const schools = [
     id: 9,
     name: 'Liceum Ogólnokształcące w Zespole Szkół nr 1 im. Szarych Szeregów w Łaskarzewie',
     type: 'liceum',
-    latitude: 51.791523,
-    longitude: 21.593041,
+    latitude: 51.793187,
+    longitude: 21.584551,
     address: 'ul. Alejowa 23, 08-450 Łaskarzew',
-    website: 'https://zs1laskarzew.pl',
-    phone: '+48 25 684 51 14',
+    website: 'http://laskarzew1.pl',
+    phone: '+48 25 684 50 21',
     students_count: 35,
     specializations: [
       'Profil ogólny (bloki rozszerzeń: język angielski, geografia, wiedza o społeczeństwie)'
