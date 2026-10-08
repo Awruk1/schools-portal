@@ -12,7 +12,7 @@ export const schools = [
   { 
     id: 2, 
     name: 'Zespół Szkół nr 1 im. Bohaterów Westerplatte w Garwolinie', 
-    type: 'liceum, technikum', ssss
+    type: 'liceum, technikum',
     latitude: 51.904266, 
     longitude: 21.607755, 
     address: 'ul. Kościuszki 53, 08-400 Garwolin', 
