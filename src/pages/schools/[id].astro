@@ -11,6 +11,13 @@ export function getStaticPaths() {
 }
 
 const { school } = Astro.props;
+
+const typesList = school.type.split(',').map((t: string) => t.trim());
+const typeIcons: Record<string, { label: string, icon: string, color: string }> = {
+  liceum: { label: 'Liceum', icon: '🎓', color: '#2563eb' },
+  technikum: { label: 'Technikum', icon: '⚙️', color: '#059669' },
+  zawodowa: { label: 'Szkoła Branżowa', icon: '🔧', color: '#d97706' },
+};
 ---
 
 <html lang="pl">
@@ -19,29 +26,68 @@ const { school } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
     <title>{school.name} - Szczegóły</title>
+    <!-- Leaflet dla pojedynczej mapy -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   </head>
   <body>
     <Header />
     
-    <main class="container">
-      <h2 style="text-align: center; margin-bottom: 0.5rem; color: var(--primary);">{school.name}</h2>
-      <p style="text-align: center; color: #64748b; text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 2rem;">
-        {school.type}
-      </p>
+    <main class="container" style="max-width: 800px; padding: 2rem 1rem;">
+      <h1 style="text-align: center; margin-bottom: 0.75rem; color: var(--primary); font-size: 1.75rem;">{school.name}</h1>
       
-      <div class="card" style="max-width: 700px; margin: 0 auto; font-size: 1.1rem;">
-        <p style="margin-bottom: 0.5rem;"><strong>📍 Adres:</strong> {school.address}</p>
-        <p style="margin-bottom: 0.5rem;"><strong>👨‍🎓 Liczba uczniów:</strong> {school.students_count}</p>
-        <p style="margin-bottom: 1.5rem;"><strong>🔗 Strona WWW:</strong> 
-          <a href={school.website} target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none;">
+      <div style="display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
+        {typesList.map((t: string) => {
+          const item = typeIcons[t];
+          return item ? (
+            <span style={`background: ${item.color}15; color: ${item.color}; border: 1px solid ${item.color}40; padding: 0.3rem 0.75rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem;`}>
+              <span>{item.icon}</span> {item.label}
+            </span>
+          ) : null;
+        })}
+      </div>
+      
+      <div class="card" style="font-size: 1.05rem; line-height: 1.7; margin-bottom: 2rem;">
+        <p style="margin-bottom: 0.6rem;"><strong>📍 Adres:</strong> {school.address}</p>
+        <p style="margin-bottom: 0.6rem;"><strong>📞 Telefon:</strong> <a href={`tel:${school.phone}`} style="color: var(--primary); text-decoration: none;">{school.phone}</a></p>
+        <p style="margin-bottom: 0.6rem;"><strong>👨‍🎓 Liczba uczniów:</strong> {school.students_count}</p>
+        <p style="margin-bottom: 1.2rem;"><strong>🔗 Strona WWW:</strong> 
+          <a href={school.website} target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none; word-break: break-all;">
             {school.website}
           </a>
         </p>
-        
-        <div style="text-align: center; margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
+
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.2rem 0;" />
+
+        <h3 style="font-size: 1.15rem; color: #1e293b; margin-bottom: 0.6rem;">Kierunki i specjalizacje:</h3>
+        <ul style="padding-left: 1.2rem; color: #475569; margin-bottom: 1.5rem;">
+          {school.specializations?.map((spec: string) => (
+            <li>{spec}</li>
+          ))}
+        </ul>
+
+        <!-- Mapa lokalizacyjna danej szkoły -->
+        <h3 style="font-size: 1.15rem; color: #1e293b; margin-bottom: 0.6rem;">Lokalizacja na mapie:</h3>
+        <div id="single-school-map" style="height: 320px; width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 1.5rem;"></div>
+
+        <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 1.5rem;">
           <a href="/schools" class="btn">Powrót do listy szkół</a>
         </div>
       </div>
     </main>
+
+    <script is:inline define:vars={{ lat: school.latitude, lng: school.longitude, title: school.name }}>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (lat && lng) {
+          const map = L.map('single-school-map').setView([lat, lng], 16);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+          }).addTo(map);
+
+          L.marker([lat, lng]).addTo(map).bindPopup(`<strong>${title}</strong>`).openPopup();
+        }
+      });
+    </script>
   </body>
 </html>

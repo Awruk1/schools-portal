@@ -1,9 +1,35 @@
 ---
 const { name, type, studentsCount, id } = Astro.props;
+
+// Rozbijamy string typu na pojedyncze tagi i dopasowujemy ikony
+const typesList = type.split(',').map((t: string) => t.trim());
+
+const typeIcons: Record<string, { label: string, icon: string, color: string }> = {
+  liceum: { label: 'Liceum', icon: '🎓', color: '#2563eb' },
+  technikum: { label: 'Technikum', icon: '⚙️', color: '#059669' },
+  zawodowa: { label: 'Szkoła Branżowa', icon: '🔧', color: '#d97706' },
+};
 ---
-<div class="card">
-  <h3 style="color: var(--primary);">{name}</h3>
-  <p><strong>Typ:</strong> {type}</p>
-  <p><strong>Liczba uczniów:</strong> {studentsCount}</p>
-  <a href={`/schools/${id}`} class="btn">Szczegóły</a>
+
+<div class="card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+  <div>
+    <h3 style="color: var(--primary); margin-bottom: 0.75rem; font-size: 1.15rem; line-height: 1.4;">{name}</h3>
+    
+    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+      {typesList.map((t: string) => {
+        const item = typeIcons[t];
+        return item ? (
+          <span style={`background: ${item.color}15; color: ${item.color}; border: 1px solid ${item.color}40; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;`}>
+            <span>{item.icon}</span> {item.label}
+          </span>
+        ) : null;
+      })}
+    </div>
+    
+    <p style="color: #475569; font-size: 0.95rem;"><strong>Liczba uczniów:</strong> {studentsCount}</p>
+  </div>
+
+  <div style="margin-top: 1.5rem;">
+    <a href={`/schools/${id}`} class="btn" style="width: 100%; text-align: center;">Szczegóły</a>
+  </div>
 </div>
