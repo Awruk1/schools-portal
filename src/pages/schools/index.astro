@@ -3,30 +3,15 @@ import '../../styles/global.css';
 import Header from '../../components/Header.astro';
 import SchoolCard from '../../components/SchoolCard.astro';
 import Map from '../../components/Map.astro';
-
-interface School {
-  id: number;
-  name: string;
-  type: string;
-  students_count: number;
-  latitude: number;
-  longitude: number;
-}
-
-const currentFilter = Astro.url.searchParams.get('type') || '';
-const apiUrl = new URL('/api/schools', Astro.url);
-if (currentFilter) apiUrl.searchParams.set('type', currentFilter);
-
-const response = await fetch(apiUrl);
-const schools: School[] = await response.json();
+import { schools } from '../../data/schools.js';
 ---
 
 <html lang="pl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Lista Szkół - Powiat Garwoliński</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+    <title>Lista Szkół - Powiat Garwoliński</title>
     <style>
       .filters {
         display: flex;
@@ -36,12 +21,14 @@ const schools: School[] = await response.json();
         flex-wrap: wrap;
       }
       .filter-btn {
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 1.2rem;
         border: 2px solid var(--primary);
         border-radius: 8px;
-        text-decoration: none;
+        background: transparent;
         color: var(--primary);
         font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
       }
       .filter-btn.active {
         background-color: var(--primary);
@@ -56,24 +43,48 @@ const schools: School[] = await response.json();
       <h1 style="text-align: center; margin-bottom: 2rem;">Baza Szkół</h1>
       
       <div class="filters">
-        <a href="/schools" class={`filter-btn ${currentFilter === '' ? 'active' : ''}`}>Wszystkie</a>
-        <a href="/schools?type=liceum" class={`filter-btn ${currentFilter === 'liceum' ? 'active' : ''}`}>Licea</a>
-        <a href="/schools?type=technikum" class={`filter-btn ${currentFilter === 'technikum' ? 'active' : ''}`}>Technika</a>
-        <a href="/schools?type=zawodowa" class={`filter-btn ${currentFilter === 'zawodowa' ? 'active' : ''}`}>Szkoły Branżowe</a>
+        <button class="filter-btn active" data-filter="all">Wszystkie</button>
+        <button class="filter-btn" data-filter="liceum">Licea</button>
+        <button class="filter-btn" data-filter="technikum">Technika</button>
+        <button class="filter-btn" data-filter="zawodowa">Szkoły Branżowe</button>
       </div>
 
       <Map schools={schools} />
 
-      <div class="grid">
+      <div class="grid" id="schools-grid">
         {schools.map((school) => (
-          <SchoolCard 
-            name={school.name} 
-            type={school.type} 
-            studentsCount={school.students_count} 
-            id={school.id} 
-          />
+          <div class="school-item" data-type={school.type}>
+            <SchoolCard 
+              name={school.name} 
+              type={school.type} 
+              studentsCount={school.students_count} 
+              id={school.id} 
+            />
+          </div>
         ))}
       </div>
     </main>
+
+    <script is:inline>
+      const buttons = document.querySelectorAll('.filter-btn');
+      const items = document.querySelectorAll('.school-item');
+
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const filter = btn.getAttribute('data-filter');
+          items.forEach(item => {
+            const types = item.getAttribute('data-type');
+            if (filter === 'all' || types.includes(filter)) {
+              item.style.display = 'block';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        });
+      });
+    </script>
   </body>
 </html>

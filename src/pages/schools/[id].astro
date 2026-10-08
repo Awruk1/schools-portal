@@ -1,23 +1,24 @@
 ---
 import '../../styles/global.css';
 import Header from '../../components/Header.astro';
+import { schools } from '../../data/schools.js';
 
-const { id } = Astro.params;
-const response = await fetch(new URL(`/api/schools/${id}`, Astro.url));
-
-if (response.status === 404) {
-  return Astro.redirect('/404');
+export function getStaticPaths() {
+  return schools.map(school => ({
+    params: { id: school.id.toString() },
+    props: { school }
+  }));
 }
 
-const school = await response.json();
+const { school } = Astro.props;
 ---
 
 <html lang="pl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>{school.name} - Szczegóły</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+    <title>{school.name} - Szczegóły</title>
   </head>
   <body>
     <Header />
@@ -29,10 +30,10 @@ const school = await response.json();
       </p>
       
       <div class="card" style="max-width: 700px; margin: 0 auto; font-size: 1.1rem;">
-        <p style="margin-bottom: 0.5rem;"><strong>📍 Adres:</strong> {school.address || "Brak danych"}</p>
-        <p style="margin-bottom: 0.5rem;"><strong>👨‍🎓 Liczba uczniów:</strong> {school.students_count || "Brak danych"}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>📍 Adres:</strong> {school.address}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>👨‍🎓 Liczba uczniów:</strong> {school.students_count}</p>
         <p style="margin-bottom: 1.5rem;"><strong>🔗 Strona WWW:</strong> 
-          <a href={school.website} target="_blank" style="color: var(--primary); text-decoration: none;">
+          <a href={school.website} target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none;">
             {school.website}
           </a>
         </p>
