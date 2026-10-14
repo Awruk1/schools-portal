@@ -3,7 +3,17 @@ import '../../styles/global.css';
 import Header from '../../components/Header.astro';
 import SchoolCard from '../../components/SchoolCard.astro';
 import Map from '../../components/Map.astro';
-import { schools } from '../../data/schools.js';
+
+const db = Astro.locals.env?.DB;
+let schools: Array<any> = [];
+
+if (db) {
+  const { results } = await db.prepare("SELECT * FROM schools ORDER BY name ASC").all();
+  schools = results.map((s: any) => ({
+    ...s,
+    specializations: typeof s.specializations === 'string' ? JSON.parse(s.specializations) : s.specializations
+  }));
+}
 ---
 
 <html lang="pl">

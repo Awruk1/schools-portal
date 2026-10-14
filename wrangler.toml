@@ -1,0 +1,10 @@
+name = "schools-portal"
+compatibility_date = "2026-03-01"
+
+[vars]
+NODE_VERSION = "22.22.0"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "schools-db"
+database_id = "552a5c8a-5ddd-4485-97e2-f81fe4a94d93"

@@ -1,15 +1,15 @@
-export async function onRequest(context) {
-  const db = context.env.DB;
+export async function GET({ request, locals }) {
+  const db = locals.env.DB;
   
   if (!db) {
-    return new Response(JSON.stringify({ error: "Brak połączenia z D1" }), { 
+    return new Response(JSON.stringify({ error: "Brak połączenia z bazą D1" }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
   }
 
-  const { results } = await db.prepare("SELECT * FROM schools ORDER BY name ASC").all();
-
+  const { results } = await db.prepare("SELECT * FROM schools").all();
+  
   return new Response(JSON.stringify(results), {
     headers: { 
       "Content-Type": "application/json",
