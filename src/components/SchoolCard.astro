@@ -1,5 +1,5 @@
 ---
-const { name, type, studentsCount, id } = Astro.props;
+const { name, type, studentsCount, id, specializations = [] } = Astro.props;
 
 const typesList = type.split(',').map((t: string) => t.trim());
 
@@ -11,25 +11,40 @@ const typeIcons: Record<string, { label: string, icon: string, color: string }> 
 };
 ---
 
-<div class="card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+<div class="card" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box;">
   <div>
-    <h3 style="color: var(--primary); margin-bottom: 0.75rem; font-size: 1.15rem; line-height: 1.4;">{name}</h3>
-    
-    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
-      {typesList.map((t: string) => {
-        const item = typeIcons[t];
-        return item ? (
-          <span style={`background: ${item.color}15; color: ${item.color}; border: 1px solid ${item.color}40; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;`}>
-            <span>{item.icon}</span> {item.label}
-          </span>
-        ) : null;
-      })}
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+        {typesList.map((t: string) => {
+          const item = typeIcons[t];
+          return item ? (
+            <span style={`background: ${item.color}15; color: ${item.color}; border: 1px solid ${item.color}40; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;`}>
+              <span>{item.icon}</span> {item.label}
+            </span>
+          ) : null;
+        })}
+      </div>
+
+      <label style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 600; color: #334155; background: #f8fafc; border: 1px solid #cbd5e1; padding: 0.25rem 0.55rem; border-radius: 6px; cursor: pointer; white-space: nowrap; user-select: none;">
+        <input type="checkbox" class="compare-checkbox" data-id={id} style="cursor: pointer;" />
+        ⚖️ Porównaj
+      </label>
     </div>
+
+    <h3 style="color: var(--primary); margin: 0 0 0.75rem 0; font-size: 1.15rem; line-height: 1.4;">{name}</h3>
     
-    <p style="color: #475569; font-size: 0.95rem;"><strong>Liczba uczniów:</strong> {studentsCount}</p>
+    <p style="color: #475569; font-size: 0.95rem; margin-bottom: 0.5rem;">
+      <strong>👨‍🎓 Liczba uczniów:</strong> {studentsCount}
+    </p>
+
+    {specializations && specializations.length > 0 && (
+      <p style="color: #64748b; font-size: 0.85rem; margin: 0;">
+        <strong>📚 Kierunki ({specializations.length}):</strong> {specializations.slice(0, 2).join(', ')}{specializations.length > 2 ? '...' : ''}
+      </p>
+    )}
   </div>
 
-  <div style="margin-top: 1.5rem;">
-    <a href={`/schools/${id}`} class="btn" style="width: 100%; text-align: center;">Szczegóły</a>
+  <div style="margin-top: 1.25rem;">
+    <a href={`/schools/${id}`} class="btn" style="width: 100%; text-align: center; box-sizing: border-box;">Szczegóły</a>
   </div>
 </div>

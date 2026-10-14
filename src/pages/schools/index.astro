@@ -4,6 +4,11 @@ import Header from '../../components/Header.astro';
 import SchoolCard from '../../components/SchoolCard.astro';
 import Map from '../../components/Map.astro';
 import { schools } from '../../data/schools.js';
+
+// Zbieramy listę wszystkich unikalnych specjalizacji do filtra multi-select
+const allSpecs = Array.from(
+  new Set(schools.flatMap((s) => s.specializations || []))
+).sort((a, b) => a.localeCompare(b, 'pl'));
 ---
 
 <html lang="pl">
@@ -13,15 +18,53 @@ import { schools } from '../../data/schools.js';
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
     <title>Lista Szkół - Powiat Garwoliński</title>
     <style>
-      .filters {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
+      .filters-panel {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
         margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgb(0 0 0 / 0.03);
+      }
+      .filters-top {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+      @media (max-width: 768px) {
+        .filters-top {
+          grid-template-columns: 1fr;
+        }
+      }
+      .search-input {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      .slider-box {
+        background: #f8fafc;
+        padding: 0.65rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+      }
+      .slider-box input[type="range"] {
+        width: 100%;
+        margin-top: 0.4rem;
+        accent-color: var(--primary);
+        cursor: pointer;
+      }
+      .type-filters {
+        display: flex;
+        gap: 0.6rem;
         flex-wrap: wrap;
+        margin-bottom: 1.25rem;
       }
       .filter-btn {
-        padding: 0.5rem 1.2rem;
+        padding: 0.45rem 1rem;
         border: 2px solid var(--primary);
         border-radius: 8px;
         background: transparent;
@@ -29,67 +72,425 @@ import { schools } from '../../data/schools.js';
         font-weight: bold;
         cursor: pointer;
         transition: all 0.2s;
+        font-size: 0.9rem;
       }
       .filter-btn.active {
         background-color: var(--primary);
         color: white;
+      }
+      .specs-multiselect {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f8fafc;
+        padding: 0.75rem 1rem;
+      }
+      .specs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 0.5rem;
+        max-height: 170px;
+        overflow-y: auto;
+        margin-top: 0.75rem;
+        padding-right: 0.5rem;
+      }
+      .spec-option {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.85rem;
+        color: #334155;
+        cursor: pointer;
+        background: white;
+        padding: 0.35rem 0.6rem;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+      }
+      .spec-option:hover {
+        border-color: var(--primary);
+      }
+
+      /* Sekcja tabeli porównawczej */
+      #comparison-section {
+        display: none;
+        background: white;
+        border: 2px solid var(--primary);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      }
+      .compare-table-wrapper {
+        overflow-x: auto;
+      }
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+      }
+      .compare-table th, .compare-table td {
+        border: 1px solid #e2e8f0;
+        padding: 0.85rem 1rem;
+        vertical-align: top;
+        text-align: left;
+      }
+      .compare-table th {
+        background: #f8fafc;
+        width: 180px;
+        color: #334155;
+        font-weight: 700;
+      }
+
+      /* Pływający pasek porównania na dole ekranu */
+      #compare-bar {
+        position: fixed;
+        bottom: 1.25rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #0f172a;
+        color: white;
+        padding: 0.75rem 1.25rem;
+        border-radius: 999px;
+        display: none;
+        align-items: center;
+        gap: 1rem;
+        z-index: 9999;
+        box-shadow: 0 10px 25px rgb(0 0 0 / 0.25);
+        font-size: 0.9rem;
       }
     </style>
   </head>
   <body>
     <Header />
     
-    <main class="container">
-      <h1 style="text-align: center; margin-bottom: 2rem;">Baza Szkół</h1>
+    <main class="container" style="padding-bottom: 5rem;">
+      <h1 style="text-align: center; margin-bottom: 1.5rem;">Baza Szkół i Zaawansowane Filtry</h1>
       
-      <div class="filters">
-        <button class="filter-btn active" data-filter="all">Wszystkie</button>
-        <button class="filter-btn" data-filter="liceum">Licea</button>
-        <button class="filter-btn" data-filter="technikum">Technika</button>
-        <button class="filter-btn" data-filter="branżowa">Szkoły Branżowe</button>
-      </div>
+      <!-- Panel Wyszukiwania i Zaawansowanych Filtrów -->
+      <section class="filters-panel">
+        <div class="filters-top">
+          <div>
+            <label for="search-input" style="display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem;">
+              🔍 Wyszukaj szkołę po nazwie lub adresie:
+            </label>
+            <input 
+              type="search" 
+              id="search-input" 
+              class="search-input" 
+              placeholder="np. Piłsudskiego, Kościuszki, Żelechów, Miętne..." 
+            />
+          </div>
 
+          <div class="slider-box">
+            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600;">
+              <label for="students-slider">👨‍🎓 Maks. liczba uczniów:</label>
+              <span style="color: var(--primary);">do <strong id="slider-value">1300</strong> uczniów</span>
+            </div>
+            <input 
+              type="range" 
+              id="students-slider" 
+              min="0" 
+              max="1300" 
+              step="50" 
+              value="1300" 
+            />
+          </div>
+        </div>
+
+        <!-- Filtr po typie szkoły -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div class="type-filters" style="margin-bottom: 0.75rem;">
+            <button class="filter-btn active" data-filter="all">Wszystkie typy</button>
+            <button class="filter-btn" data-filter="liceum">🎓 Licea</button>
+            <button class="filter-btn" data-filter="technikum">⚙️ Technika</button>
+            <button class="filter-btn" data-filter="branżowa">🔧 Szkoły Branżowe</button>
+          </div>
+
+          <button id="reset-filters-btn" style="background: none; border: none; color: #64748b; text-decoration: underline; cursor: pointer; font-size: 0.85rem;">
+            Wyczyść wszystkie filtry
+          </button>
+        </div>
+
+        <!-- Multi-select po specjalizacjach -->
+        <details class="specs-multiselect">
+          <summary style="font-weight: 600; cursor: pointer; font-size: 0.95rem; color: #1e293b;">
+            📚 Filtruj po specjalizacjach / kierunkach (Multi-select) <span id="selected-specs-count" style="color: var(--primary); font-weight: 700;"></span>
+          </summary>
+          <div class="specs-grid" id="specs-container">
+            {allSpecs.map((spec) => (
+              <label class="spec-option">
+                <input type="checkbox" class="spec-checkbox" value={spec} />
+                <span>{spec}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+
+        <div style="margin-top: 1rem; font-size: 0.9rem; color: #475569; display: flex; justify-content: space-between; align-items: center;">
+          <span>Znaleziono placówek: <strong id="visible-count">{schools.length}</strong> z <span id="total-count">{schools.length}</span></span>
+          <span style="font-size: 0.82rem; color: #64748b;">💡 Zaznacz 2 lub 3 szkoły na kartach poniżej, aby zobaczyć tabelę porównawczą.</span>
+        </div>
+      </section>
+
+      <!-- Sekcja Tabeli Porównawczej (2-3 szkoły) -->
+      <section id="comparison-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h2 style="margin: 0; color: var(--primary); font-size: 1.35rem;">⚖️ Tabela porównawcza wybranych szkół</h2>
+          <button id="clear-compare-btn" style="background: #fee2e2; color: #991b1b; border: none; padding: 0.4rem 0.85rem; border-radius: 6px; font-weight: 600; cursor: pointer;">
+            ✕ Zamknij i wyczyść porównanie
+          </button>
+        </div>
+        <div class="compare-table-wrapper" id="comparison-table-container"></div>
+      </section>
+
+      <!-- Interaktywna Mapa -->
       <Map schools={schools} />
 
+      <!-- Siatka Kart Szkół -->
       <div class="grid" id="schools-grid">
         {schools.map((school) => (
-          <div class="school-item" data-type={school.type}>
+          <div 
+            class="school-item" 
+            data-id={school.id}
+            data-name={school.name.toLowerCase()}
+            data-address={(school.address || '').toLowerCase()}
+            data-type={school.type.toLowerCase()}
+            data-students={school.students_count}
+            data-specs={JSON.stringify(school.specializations || [])}
+          >
             <SchoolCard 
               name={school.name} 
               type={school.type} 
               studentsCount={school.students_count} 
-              id={school.id} 
+              id={school.id}
+              specializations={school.specializations}
             />
           </div>
         ))}
       </div>
     </main>
 
-    <script is:inline>
-      const buttons = document.querySelectorAll('.filter-btn');
+    <!-- Pływający pasek porównania -->
+    <div id="compare-bar">
+      <span>⚖️ Wybrano do porównania: <strong id="compare-count">0</strong>/3</span>
+      <button id="scroll-to-compare-btn" style="background: #2563eb; color: white; border: none; padding: 0.4rem 0.9rem; border-radius: 999px; font-weight: 600; cursor: pointer;">
+        Zobacz porównanie ↑
+      </button>
+    </div>
 
-      function applyFilter(filter) {
+    <script is:inline define:vars={{ initialSchools: schools }}>
+      let allSchools = [...initialSchools];
+      let currentTypeFilter = 'all';
+      let selectedCompareIds = new Set();
+
+      const searchInput = document.getElementById('search-input');
+      const studentsSlider = document.getElementById('students-slider');
+      const sliderValue = document.getElementById('slider-value');
+      const typeButtons = document.querySelectorAll('.filter-btn');
+      const resetFiltersBtn = document.getElementById('reset-filters-btn');
+      const visibleCountEl = document.getElementById('visible-count');
+      const totalCountEl = document.getElementById('total-count');
+      const selectedSpecsCountEl = document.getElementById('selected-specs-count');
+
+      const comparisonSection = document.getElementById('comparison-section');
+      const comparisonContainer = document.getElementById('comparison-table-container');
+      const compareBar = document.getElementById('compare-bar');
+      const compareCountEl = document.getElementById('compare-count');
+      const clearCompareBtn = document.getElementById('clear-compare-btn');
+      const scrollToCompareBtn = document.getElementById('scroll-to-compare-btn');
+
+      // Funkcja sprawdzająca czy szkoła spełnia wszystkie aktywne filtry
+      function getSelectedSpecs() {
+        return Array.from(document.querySelectorAll('.spec-checkbox:checked')).map(cb => cb.value);
+      }
+
+      function applyAllFilters() {
+        const query = (searchInput.value || '').trim().toLowerCase();
+        const maxStudents = parseInt(studentsSlider.value, 10);
+        const selectedSpecs = getSelectedSpecs();
+
+        sliderValue.textContent = maxStudents;
+        selectedSpecsCountEl.textContent = selectedSpecs.length > 0 ? `(wybrano: ${selectedSpecs.length})` : '';
+
         const items = document.querySelectorAll('.school-item');
+        const visibleIds = new Set();
+
         items.forEach(item => {
+          const id = Number(item.getAttribute('data-id'));
+          const name = item.getAttribute('data-name') || '';
+          const address = item.getAttribute('data-address') || '';
           const types = item.getAttribute('data-type') || '';
-          const matches = (filter === 'all') || 
-                          (filter === 'branżowa' && (types.includes('branżowa') || types.includes('zawodowa'))) ||
-                          types.includes(filter);
-          item.style.display = matches ? 'block' : 'none';
+          const students = parseInt(item.getAttribute('data-students') || '0', 10);
+          const specs = JSON.parse(item.getAttribute('data-specs') || '[]');
+
+          // 1. Filtr nazwy/adresu
+          const matchesQuery = !query || name.includes(query) || address.includes(query);
+
+          // 2. Filtr typu placówki
+          const matchesType = (currentTypeFilter === 'all') ||
+            (currentTypeFilter === 'branżowa' && (types.includes('branżowa') || types.includes('zawodowa'))) ||
+            types.includes(currentTypeFilter);
+
+          // 3. Filtr liczby uczniów (range slider)
+          const matchesStudents = students <= maxStudents;
+
+          // 4. Filtr specjalizacji (multi-select)
+          const matchesSpecs = selectedSpecs.length === 0 || selectedSpecs.some(sel => specs.includes(sel));
+
+          const isVisible = matchesQuery && matchesType && matchesStudents && matchesSpecs;
+          item.style.display = isVisible ? 'block' : 'none';
+
+          if (isVisible) visibleIds.add(id);
         });
 
-        if (typeof window.filterMapMarkers === 'function') {
-          window.filterMapMarkers(filter);
+        visibleCountEl.textContent = visibleIds.size;
+
+        // Aktualizacja pinezek na mapie
+        if (typeof window.updateMapMarkers === 'function') {
+          const filteredSchools = allSchools.filter(s => visibleIds.has(Number(s.id)));
+          window.updateMapMarkers(filteredSchools);
         }
       }
 
-      buttons.forEach(btn => {
+      // Obsługa Tabeli Porównawczej (2-3 szkoły)
+      function updateComparisonView() {
+        const count = selectedCompareIds.size;
+        compareCountEl.textContent = count;
+
+        if (count > 0) {
+          compareBar.style.display = 'flex';
+        } else {
+          compareBar.style.display = 'none';
+        }
+
+        // Tabela porównawcza otwiera się przy wybraniu 2 lub 3 szkół
+        if (count >= 2) {
+          const comparedSchools = allSchools.filter(s => selectedCompareIds.has(Number(s.id)));
+          comparisonSection.style.display = 'block';
+
+          comparisonContainer.innerHTML = `
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>Parametr</th>
+                  ${comparedSchools.map(s => `
+                    <th>
+                      <div style="color: var(--primary); font-size: 1.05rem; margin-bottom: 0.3rem;">${s.name}</div>
+                      <a href="/schools/${s.id}" style="font-size: 0.8rem; color: #2563eb; text-decoration: none;">Przejdź do profilu &rarr;</a>
+                    </th>
+                  `).join('')}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Typ szkoły</th>
+                  ${comparedSchools.map(s => `<td style="text-transform: capitalize; font-weight: 600;">${s.type}</td>`).join('')}
+                </tr>
+                <tr>
+                  <th>Liczba uczniów</th>
+                  ${comparedSchools.map(s => `<td>👨‍🎓 <strong>${s.students_count}</strong> uczniów</td>`).join('')}
+                </tr>
+                <tr>
+                  <th>Adres</th>
+                  ${comparedSchools.map(s => `<td>📍 ${s.address || 'Brak danych'}</td>`).join('')}
+                </tr>
+                <tr>
+                  <th>Telefon</th>
+                  ${comparedSchools.map(s => `<td>📞 ${s.phone || 'Brak danych'}</td>`).join('')}
+                </tr>
+                <tr>
+                  <th>Strona WWW</th>
+                  ${comparedSchools.map(s => `<td><a href="${s.website}" target="_blank" style="color: var(--primary); word-break: break-all;">${s.website || '-'}</a></td>`).join('')}
+                </tr>
+                <tr>
+                  <th>Kierunki i specjalizacje</th>
+                  ${comparedSchools.map(s => `
+                    <td>
+                      <ul style="margin: 0; padding-left: 1.1rem; font-size: 0.88rem; color: #334155;">
+                        ${(s.specializations || []).map(sp => `<li style="margin-bottom: 0.25rem;">${sp}</li>`).join('')}
+                      </ul>
+                    </td>
+                  `).join('')}
+                </tr>
+              </tbody>
+            </table>
+          `;
+        } else {
+          comparisonSection.style.display = 'none';
+        }
+      }
+
+      function bindCompareCheckboxes() {
+        document.querySelectorAll('.compare-checkbox').forEach(cb => {
+          cb.addEventListener('change', (e) => {
+            const id = Number(e.target.getAttribute('data-id'));
+            if (e.target.checked) {
+              if (selectedCompareIds.size >= 3) {
+                e.target.checked = false;
+                alert('Możesz wybrać maksymalnie 3 szkoły do porównania jednocześnie.');
+                return;
+              }
+              selectedCompareIds.add(id);
+            } else {
+              selectedCompareIds.delete(id);
+            }
+            updateComparisonView();
+          });
+        });
+      }
+
+      // Event listenery dla filtrów
+      searchInput.addEventListener('input', applyAllFilters);
+      studentsSlider.addEventListener('input', applyAllFilters);
+
+      typeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          buttons.forEach(b => b.classList.remove('active'));
+          typeButtons.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          applyFilter(btn.getAttribute('data-filter'));
+          currentTypeFilter = btn.getAttribute('data-filter');
+          applyAllFilters();
         });
       });
+
+      document.querySelectorAll('.spec-checkbox').forEach(cb => {
+        cb.addEventListener('change', applyAllFilters);
+      });
+
+      resetFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        studentsSlider.value = 1300;
+        currentTypeFilter = 'all';
+        typeButtons.forEach(b => b.classList.remove('active'));
+        typeButtons[0].classList.add('active');
+        document.querySelectorAll('.spec-checkbox').forEach(cb => cb.checked = false);
+        applyAllFilters();
+      });
+
+      clearCompareBtn.addEventListener('click', () => {
+        selectedCompareIds.clear();
+        document.querySelectorAll('.compare-checkbox').forEach(cb => cb.checked = false);
+        updateComparisonView();
+      });
+
+      scrollToCompareBtn.addEventListener('click', () => {
+        if (selectedCompareIds.size < 2) {
+          alert('Zaznacz jeszcze przynajmniej jedną szkołę (minimum 2), aby wyświetlić tabelę porównawczą.');
+          return;
+        }
+        comparisonSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      bindCompareCheckboxes();
+
+      // Synchronizacja na żywo z bazą D1 (jeśli w Panelu Admina dodano/usunięto szkołę)
+      fetch('/api/schools')
+        .then(res => res.ok ? res.json() : null)
+        .then(d1Data => {
+          if (Array.isArray(d1Data) && d1Data.length > 0) {
+            allSchools = d1Data;
+            totalCountEl.textContent = allSchools.length;
+          }
+        })
+        .catch(() => {});
     </script>
   </body>
 </html>
