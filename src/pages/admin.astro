@@ -1,0 +1,313 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+---
+
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+    <title>Panel Admina (D1) - Szkoły Garwolin</title>
+    <style>
+      .admin-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 2rem;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .admin-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+        font-size: 0.9rem;
+      }
+      .form-group input[type="text"],
+      .form-group input[type="number"],
+      .form-group input[type="url"] {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+      }
+      .checkbox-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 0.25rem;
+      }
+      .checkbox-group label {
+        font-weight: normal;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        cursor: pointer;
+      }
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: #dcfce7;
+        color: #166534;
+      }
+      .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+      .admin-table th, .admin-table td {
+        text-align: left;
+        padding: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .admin-table th {
+        background: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+      }
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+
+    <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+          <h1 style="margin: 0 0 0.5rem 0; color: var(--primary);">⚙️ Panel Administracyjny D1</h1>
+          <p style="margin: 0; color: #64748b;">Zarządzanie bazą szkół Cloudflare D1 w czasie rzeczywistym.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <span id="db-status" class="status-badge">⏳ Łączenie z D1...</span>
+          <a href="/api/schools" target="_blank" class="btn" style="margin: 0; padding: 0.4rem 0.85rem; font-size: 0.85rem;">Podgląd JSON API ↗</a>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <!-- Formularz dodawania szkoły -->
+        <div class="card">
+          <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem;">➕ Dodaj nową szkołę</h2>
+          <form id="add-school-form">
+            <div class="form-group">
+              <label>Nazwa szkoły *</label>
+              <input type="text" name="name" required placeholder="np. Zespół Szkół nr 3 w Garwolinie" />
+            </div>
+
+            <div class="form-group">
+              <label>Typ placówki *</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" name="type_opt" value="liceum" checked /> 🎓 Liceum</label>
+                <label><input type="checkbox" name="type_opt" value="technikum" /> ⚙️ Technikum</label>
+                <label><input type="checkbox" name="type_opt" value="branżowa" /> 🔧 Branżowa</label>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label>Szerokość (Lat) *</label>
+                <input type="number" step="any" name="latitude" required value="51.8955" />
+              </div>
+              <div class="form-group">
+                <label>Długość (Lng) *</label>
+                <input type="number" step="any" name="longitude" required value="21.6100" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Adres *</label>
+              <input type="text" name="address" required placeholder="ul. Przykładowa 1, 08-400 Garwolin" />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label>Liczba uczniów *</label>
+                <input type="number" name="students_count" required value="450" />
+              </div>
+              <div class="form-group">
+                <label>Telefon</label>
+                <input type="text" name="phone" placeholder="+48 25 682 00 00" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Strona WWW</label>
+              <input type="url" name="website" placeholder="https://example.edu.pl" />
+            </div>
+
+            <div class="form-group">
+              <label>Specjalizacje (oddzielone przecinkiem)</label>
+              <input type="text" name="specializations" placeholder="Technik informatyk, Profil matematyczny" />
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; border: none; cursor: pointer; font-size: 1rem; margin-top: 0.5rem;">
+              Zapisz w bazie D1
+            </button>
+            <p id="form-msg" style="margin-top: 0.75rem; font-size: 0.9rem; text-align: center;"></p>
+          </form>
+        </div>
+
+        <!-- Tabela szkół w bazie D1 -->
+        <div class="card" style="overflow-x: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 style="margin: 0; font-size: 1.25rem;">📋 Rekordy w bazie D1 (<span id="schools-count">0</span>)</h2>
+            <button id="refresh-btn" style="background: none; border: 1px solid #cbd5e1; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer;">🔄 Odśwież</button>
+          </div>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nazwa</th>
+                <th>Typ</th>
+                <th>Uczniowie</th>
+                <th>Akcja</th>
+              </tr>
+            </thead>
+            <tbody id="admin-schools-tbody">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Pobieranie danych z bazy D1...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <script is:inline>
+      const tbody = document.getElementById('admin-schools-tbody');
+      const countEl = document.getElementById('schools-count');
+      const statusEl = document.getElementById('db-status');
+      const form = document.getElementById('add-school-form');
+      const formMsg = document.getElementById('form-msg');
+      const refreshBtn = document.getElementById('refresh-btn');
+
+      async function loadSchoolsFromD1() {
+        try {
+          const res = await fetch('/api/schools');
+          if (!res.ok) throw new Error('Błąd HTTP: ' + res.status);
+          const data = await res.json();
+
+          statusEl.textContent = '🟢 Połączono z D1 (Produkcja)';
+          statusEl.style.background = '#dcfce7';
+          statusEl.style.color = '#166534';
+          countEl.textContent = data.length;
+
+          if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 1.5rem;">Brak szkół w bazie D1.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = data.map(s => `
+            <tr>
+              <td><strong>#${s.id}</strong></td>
+              <td>${s.name}<br><small style="color:#64748b;">${s.address || ''}</small></td>
+              <td><span style="font-size: 0.8rem; background: #f1f5f9; padding: 0.2rem 0.5rem; border-radius: 4px;">${s.type}</span></td>
+              <td>${s.students_count || 0}</td>
+              <td>
+                <button class="btn-danger" onclick="deleteSchool(${s.id})">Usuń</button>
+              </td>
+            </tr>
+          `).join('');
+        } catch (err) {
+          statusEl.textContent = '🔴 Tryb lokalny / brak D1';
+          statusEl.style.background = '#fee2e2';
+          statusEl.style.color = '#991b1b';
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#dc2626; padding: 1.5rem;">Nie udało się pobrać danych z /api/schools (${err.message}). Na produkcji Cloudflare Pages połączenie z D1 działa automatycznie.</td></tr>`;
+        }
+      }
+
+      window.deleteSchool = async function(id) {
+        if (!confirm('Czy na pewno chcesz usunąć szkołę #' + id + ' z bazy D1?')) return;
+        try {
+          const res = await fetch('/api/schools?id=' + id, { method: 'DELETE' });
+          if (res.ok) {
+            await loadSchoolsFromD1();
+          } else {
+            alert('Błąd podczas usuwania rekordu.');
+          }
+        } catch (e) {
+          alert('Błąd sieci: ' + e.message);
+        }
+      };
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const checkedTypes = Array.from(form.querySelectorAll('input[name="type_opt"]:checked')).map(cb => cb.value);
+
+        if (checkedTypes.length === 0) {
+          formMsg.style.color = '#dc2626';
+          formMsg.textContent = 'Zaznacz przynajmniej jeden typ placówki!';
+          return;
+        }
+
+        const specsRaw = formData.get('specializations') || '';
+        const specsArray = specsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+        const payload = {
+          name: formData.get('name'),
+          type: checkedTypes.join(', '),
+          latitude: parseFloat(formData.get('latitude')),
+          longitude: parseFloat(formData.get('longitude')),
+          address: formData.get('address'),
+          students_count: parseInt(formData.get('students_count'), 10),
+          phone: formData.get('phone'),
+          website: formData.get('website'),
+          specializations: specsArray
+        };
+
+        formMsg.style.color = '#2563eb';
+        formMsg.textContent = 'Zapisywanie w bazie D1...';
+
+        try {
+          const res = await fetch('/api/schools', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            formMsg.style.color = '#166534';
+            formMsg.textContent = '✅ Szkoła została dodana do bazy D1!';
+            form.reset();
+            await loadSchoolsFromD1();
+          } else {
+            throw new Error('Serwer zwrócił status ' + res.status);
+          }
+        } catch (err) {
+          formMsg.style.color = '#dc2626';
+          formMsg.textContent = '❌ Błąd zapisu: ' + err.message;
+        }
+      });
+
+      refreshBtn.addEventListener('click', loadSchoolsFromD1);
+      document.addEventListener('DOMContentLoaded', loadSchoolsFromD1);
+    </script>
+  </body>
+</html>
