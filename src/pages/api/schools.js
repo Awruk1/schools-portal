@@ -1,5 +1,5 @@
 export async function GET({ request, locals }) {
-  const db = locals.env.DB;
+  const db = locals.env?.DB;
   
   if (!db) {
     return new Response(JSON.stringify({ error: "Brak połączenia z bazą D1" }), {
