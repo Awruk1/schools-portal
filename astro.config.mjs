@@ -4,11 +4,9 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
-    imageService: 'cloudflare',
-    routes: {
-      strategy: "include",
-      include: ["/*"],
-      exclude: ["/_astro/*", "/favicon.ico", "/hero.jpg"]
-    }
-  })
+    imageService: 'passthrough'
+  }),
+  session: {
+    driver: 'memory'
+  }
 });
