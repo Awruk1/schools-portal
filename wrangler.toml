@@ -1,11 +1,9 @@
 name = "schools-portal"
 compatibility_date = "2026-03-01"
+pages_build_output_dir = "dist"
 
 [vars]
 NODE_VERSION = "22.22.0"
-
-[assets]
-directory = "./dist"
 
 [[d1_databases]]
 binding = "DB"
