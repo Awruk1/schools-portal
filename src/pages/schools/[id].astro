@@ -1,16 +1,22 @@
 ---
 import '../../styles/global.css';
 import Header from '../../components/Header.astro';
-import { schools } from '../../data/schools.js';
 
-export function getStaticPaths() {
-  return schools.map(school => ({
-    params: { id: school.id.toString() },
-    props: { school }
-  }));
+const { id } = Astro.params;
+const db = Astro.locals.env?.DB;
+let school: any = null;
+
+if (db) {
+  const { results } = await db.prepare("SELECT * FROM schools WHERE id = ?").bind(id).all();
+  if (results && results.length > 0) {
+    school = results[0];
+    school.specializations = typeof school.specializations === 'string' ? JSON.parse(school.specializations) : school.specializations;
+  }
 }
 
-const { school } = Astro.props;
+if (!school) {
+  return Astro.redirect('/schools');
+}
 
 const typesList = school.type.split(',').map((t: string) => t.trim());
 const typeIcons: Record<string, { label: string, icon: string, color: string }> = {
@@ -27,7 +33,6 @@ const typeIcons: Record<string, { label: string, icon: string, color: string }> 
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
     <title>{school.name} - Szczegóły</title>
-    <!-- Leaflet dla pojedynczej mapy -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   </head>
@@ -67,7 +72,6 @@ const typeIcons: Record<string, { label: string, icon: string, color: string }> 
           ))}
         </ul>
 
-        <!-- Mapa lokalizacyjna danej szkoły -->
         <h3 style="font-size: 1.15rem; color: #1e293b; margin-bottom: 0.6rem;">Lokalizacja na mapie:</h3>
         <div id="single-school-map" style="height: 320px; width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 1.5rem;"></div>
 
