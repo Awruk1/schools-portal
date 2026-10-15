@@ -29,7 +29,7 @@ const allSpecs = Array.from(
       }
       .filters-top {
         display: grid;
-        grid-template-columns: 1.5fr 1fr;
+        grid-template-columns: 1.4fr 1.1fr;
         gap: 1.5rem;
         margin-bottom: 1.25rem;
       }
@@ -48,17 +48,79 @@ const allSpecs = Array.from(
       }
       .slider-box {
         background: #f8fafc;
-        padding: 0.65rem 1rem;
+        padding: 0.75rem 1rem;
         border-radius: 8px;
         border: 1px solid #e2e8f0;
         height: fit-content;
       }
-      .slider-box input[type="range"] {
-        width: 100%;
-        margin-top: 0.4rem;
-        accent-color: var(--primary);
-        cursor: pointer;
+
+      /* Dwustronny suwak zakresowy (Dual Range Slider) */
+      .dual-slider-container {
+        position: relative;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        margin-top: 0.35rem;
       }
+      .slider-track {
+        position: absolute;
+        width: 100%;
+        height: 6px;
+        background: #cbd5e1;
+        border-radius: 999px;
+        z-index: 1;
+      }
+      .slider-range-fill {
+        position: absolute;
+        height: 6px;
+        background: var(--primary);
+        border-radius: 999px;
+        z-index: 2;
+      }
+      .dual-range-input {
+        position: absolute;
+        width: 100%;
+        height: 6px;
+        background: none;
+        pointer-events: none;
+        -webkit-appearance: none;
+        appearance: none;
+        margin: 0;
+        z-index: 3;
+      }
+      .dual-range-input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        pointer-events: auto;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary);
+        border: 2px solid white;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        cursor: grab;
+        transition: transform 0.1s;
+      }
+      .dual-range-input::-webkit-slider-thumb:active {
+        transform: scale(1.15);
+        cursor: grabbing;
+      }
+      .dual-range-input::-moz-range-thumb {
+        pointer-events: auto;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--primary);
+        border: 2px solid white;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+        cursor: grab;
+        transition: transform 0.1s;
+      }
+      .dual-range-input::-moz-range-thumb:active {
+        transform: scale(1.15);
+        cursor: grabbing;
+      }
+
       .type-filters {
         display: flex;
         gap: 0.6rem;
@@ -186,17 +248,35 @@ const allSpecs = Array.from(
 
           <div class="slider-box">
             <div style="display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600;">
-              <label for="students-slider">👨‍🎓 Maks. liczba uczniów:</label>
-              <span style="color: var(--primary);">do <strong id="slider-value">1300</strong> uczniów</span>
+              <span>👨‍🎓 Liczba uczniów:</span>
+              <span style="color: var(--primary);">
+                od <strong id="min-slider-value">0</strong> do <strong id="max-slider-value">1300</strong>
+              </span>
             </div>
-            <input 
-              type="range" 
-              id="students-slider" 
-              min="0" 
-              max="1300" 
-              step="50" 
-              value="1300" 
-            />
+            <div class="dual-slider-container">
+              <div class="slider-track"></div>
+              <div class="slider-range-fill" id="slider-range-fill"></div>
+              <input 
+                type="range" 
+                id="min-students-slider" 
+                class="dual-range-input"
+                min="0" 
+                max="1300" 
+                step="10" 
+                value="0" 
+                aria-label="Minimalna liczba uczniów"
+              />
+              <input 
+                type="range" 
+                id="max-students-slider" 
+                class="dual-range-input"
+                min="0" 
+                max="1300" 
+                step="10" 
+                value="1300" 
+                aria-label="Maksymalna liczba uczniów"
+              />
+            </div>
           </div>
         </div>
 
@@ -287,8 +367,12 @@ const allSpecs = Array.from(
       let selectedCompareIds = new Set();
 
       const searchInput = document.getElementById('search-input');
-      const studentsSlider = document.getElementById('students-slider');
-      const sliderValue = document.getElementById('slider-value');
+      const minStudentsSlider = document.getElementById('min-students-slider');
+      const maxStudentsSlider = document.getElementById('max-students-slider');
+      const minSliderValue = document.getElementById('min-slider-value');
+      const maxSliderValue = document.getElementById('max-slider-value');
+      const sliderRangeFill = document.getElementById('slider-range-fill');
+
       const typeButtons = document.querySelectorAll('.filter-btn');
       const resetFiltersBtn = document.getElementById('reset-filters-btn');
       const visibleCountEl = document.getElementById('visible-count');
@@ -301,6 +385,25 @@ const allSpecs = Array.from(
       const compareCountEl = document.getElementById('compare-count');
       const clearCompareBtn = document.getElementById('clear-compare-btn');
       const scrollToCompareBtn = document.getElementById('scroll-to-compare-btn');
+
+      // Aktualizacja wizualnego paska między lewym a prawym suwakiem
+      function updateDualSliderUI() {
+        const maxLimit = parseInt(maxStudentsSlider.max, 10) || 1300;
+        const minVal = parseInt(minStudentsSlider.value, 10);
+        const maxVal = parseInt(maxStudentsSlider.value, 10);
+
+        const leftPercent = (minVal / maxLimit) * 100;
+        const rightPercent = (maxVal / maxLimit) * 100;
+
+        sliderRangeFill.style.left = `${leftPercent}%`;
+        sliderRangeFill.style.width = `${Math.max(rightPercent - leftPercent, 0)}%`;
+
+        // Zapobiega zablokowaniu uchwytu, gdy oba spotkają się przy prawej krawędzi
+        minStudentsSlider.style.zIndex = minVal > maxLimit - 100 ? '5' : '3';
+
+        minSliderValue.textContent = minVal;
+        maxSliderValue.textContent = maxVal;
+      }
 
       // Normalizacja UTF-8 (NFC) dla języka polskiego
       function normalizeUtf8(str) {
@@ -322,8 +425,7 @@ const allSpecs = Array.from(
           .replace(/[\u0300-\u036f]/g, '');
       }
 
-      // Bezpośrednia obsługa polskich znaków z klawiatury (Alt + a/c/e/l/n/o/s/x/z),
-      // gdy maszyna wirtualna lub przeglądarka ma ustawiony angielski układ klawiatury
+      // Bezpośrednia obsługa polskich znaków z klawiatury (Alt + a/c/e/l/n/o/s/x/z)
       const altPolishMap = {
         'a': 'ą', 'c': 'ć', 'e': 'ę', 'l': 'ł', 'n': 'ń',
         'o': 'ó', 's': 'ś', 'x': 'ź', 'z': 'ż',
@@ -355,10 +457,11 @@ const allSpecs = Array.from(
         const queryUtf8 = normalizeUtf8(rawQuery);
         const queryStripped = stripPolishDiacritics(rawQuery);
 
-        const maxStudents = parseInt(studentsSlider.value, 10);
+        const minStudents = parseInt(minStudentsSlider.value, 10);
+        const maxStudents = parseInt(maxStudentsSlider.value, 10);
         const selectedSpecs = getSelectedSpecs();
 
-        sliderValue.textContent = maxStudents;
+        updateDualSliderUI();
         selectedSpecsCountEl.textContent = selectedSpecs.length > 0 ? `(wybrano: ${selectedSpecs.length})` : '';
 
         const items = document.querySelectorAll('.school-item');
@@ -386,8 +489,8 @@ const allSpecs = Array.from(
             (currentTypeFilter === 'branżowa' && (types.includes('branżowa') || types.includes('zawodowa'))) ||
             types.includes(currentTypeFilter);
 
-          // 3. Filtr liczby uczniów (range slider)
-          const matchesStudents = students <= maxStudents;
+          // 3. Filtr liczby uczniów w obie strony (od min do max)
+          const matchesStudents = students >= minStudents && students <= maxStudents;
 
           // 4. Filtr specjalizacji (multi-select)
           const matchesSpecs = selectedSpecs.length === 0 || selectedSpecs.some(sel => specs.includes(sel));
@@ -405,6 +508,21 @@ const allSpecs = Array.from(
           window.updateMapMarkers(filteredSchools);
         }
       }
+
+      // Pilnowanie, aby lewy suwak nie przekroczył prawego i odwrotnie
+      minStudentsSlider.addEventListener('input', () => {
+        if (parseInt(minStudentsSlider.value, 10) > parseInt(maxStudentsSlider.value, 10)) {
+          minStudentsSlider.value = maxStudentsSlider.value;
+        }
+        applyAllFilters();
+      });
+
+      maxStudentsSlider.addEventListener('input', () => {
+        if (parseInt(maxStudentsSlider.value, 10) < parseInt(minStudentsSlider.value, 10)) {
+          maxStudentsSlider.value = minStudentsSlider.value;
+        }
+        applyAllFilters();
+      });
 
       // Obsługa Tabeli Porównawczej (2-3 szkoły)
       function updateComparisonView() {
@@ -492,9 +610,8 @@ const allSpecs = Array.from(
         });
       }
 
-      // Event listenery dla filtrów
+      // Event listenery dla pozostałych filtrów
       searchInput.addEventListener('input', applyAllFilters);
-      studentsSlider.addEventListener('input', applyAllFilters);
 
       typeButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -511,7 +628,8 @@ const allSpecs = Array.from(
 
       resetFiltersBtn.addEventListener('click', () => {
         searchInput.value = '';
-        studentsSlider.value = 1300;
+        minStudentsSlider.value = 0;
+        maxStudentsSlider.value = 1300;
         currentTypeFilter = 'all';
         typeButtons.forEach(b => b.classList.remove('active'));
         typeButtons[0].classList.add('active');
@@ -534,6 +652,7 @@ const allSpecs = Array.from(
       });
 
       bindCompareCheckboxes();
+      updateDualSliderUI();
 
       // Synchronizacja na żywo z bazą D1
       fetch('/api/schools')
