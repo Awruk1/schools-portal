@@ -10,6 +10,23 @@ import Header from '../components/Header.astro';
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
     <title>Panel Admina (D1) - Szkoły Garwolin</title>
     <style>
+      /* Ekran logowania */
+      .login-wrapper {
+        max-width: 420px;
+        margin: 4rem auto;
+      }
+      .login-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08);
+      }
+
+      /* Widok panelu po zalogowaniu */
+      #admin-panel-content {
+        display: none;
+      }
       .admin-grid {
         display: grid;
         grid-template-columns: 1fr 1.5fr;
@@ -31,10 +48,11 @@ import Header from '../components/Header.astro';
         font-size: 0.9rem;
       }
       .form-group input[type="text"],
+      .form-group input[type="password"],
       .form-group input[type="number"],
       .form-group input[type="url"] {
         width: 100%;
-        padding: 0.6rem;
+        padding: 0.65rem 0.75rem;
         border: 1px solid #cbd5e1;
         border-radius: 6px;
         font-size: 0.95rem;
@@ -92,120 +110,217 @@ import Header from '../components/Header.astro';
       .btn-danger:hover {
         background: #dc2626;
       }
+      .btn-logout {
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        padding: 0.4rem 0.85rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .btn-logout:hover {
+        background: #e2e8f0;
+      }
     </style>
   </head>
   <body>
     <Header />
 
     <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
-        <div>
-          <h1 style="margin: 0 0 0.5rem 0; color: var(--primary);">⚙️ Panel Administracyjny D1</h1>
-          <p style="margin: 0; color: #64748b;">Zarządzanie bazą szkół Cloudflare D1 w czasie rzeczywistym.</p>
-        </div>
-        <div style="display: flex; gap: 0.75rem; align-items: center;">
-          <span id="db-status" class="status-badge">⏳ Łączenie z D1...</span>
-          <a href="/api/schools" target="_blank" class="btn" style="margin: 0; padding: 0.4rem 0.85rem; font-size: 0.85rem;">Podgląd JSON API ↗</a>
-        </div>
-      </div>
+      
+      <!-- EKRAN LOGOWANIA -->
+      <section id="login-screen" class="login-wrapper">
+        <div class="login-card">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔒</div>
+            <h1 style="margin: 0 0 0.4rem 0; color: var(--primary); font-size: 1.5rem;">Autoryzacja Admina</h1>
+            <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Zaloguj się, aby zarządzać bazą szkół D1.</p>
+          </div>
 
-      <div class="admin-grid">
-        <!-- Formularz dodawania szkoły -->
-        <div class="card">
-          <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem;">➕ Dodaj nową szkołę</h2>
-          <form id="add-school-form">
+          <form id="login-form">
             <div class="form-group">
-              <label>Nazwa szkoły *</label>
-              <input type="text" name="name" required placeholder="np. Zespół Szkół nr 3 w Garwolinie" />
+              <label for="admin-user">Login</label>
+              <input type="text" id="admin-user" required autocomplete="username" placeholder="Wpisz login..." />
             </div>
 
             <div class="form-group">
-              <label>Typ placówki *</label>
-              <div class="checkbox-group">
-                <label><input type="checkbox" name="type_opt" value="liceum" checked /> 🎓 Liceum</label>
-                <label><input type="checkbox" name="type_opt" value="technikum" /> ⚙️ Technikum</label>
-                <label><input type="checkbox" name="type_opt" value="branżowa" /> 🔧 Branżowa</label>
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-              <div class="form-group">
-                <label>Szerokość (Lat) *</label>
-                <input type="number" step="any" name="latitude" required value="51.8955" />
-              </div>
-              <div class="form-group">
-                <label>Długość (Lng) *</label>
-                <input type="number" step="any" name="longitude" required value="21.6100" />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Adres *</label>
-              <input type="text" name="address" required placeholder="ul. Przykładowa 1, 08-400 Garwolin" />
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-              <div class="form-group">
-                <label>Liczba uczniów *</label>
-                <input type="number" name="students_count" required value="450" />
-              </div>
-              <div class="form-group">
-                <label>Telefon</label>
-                <input type="text" name="phone" placeholder="+48 25 682 00 00" />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Strona WWW</label>
-              <input type="url" name="website" placeholder="https://example.edu.pl" />
-            </div>
-
-            <div class="form-group">
-              <label>Specjalizacje (oddzielone przecinkiem)</label>
-              <input type="text" name="specializations" placeholder="Technik informatyk, Profil matematyczny" />
+              <label for="admin-pass">Hasło</label>
+              <input type="password" id="admin-pass" required autocomplete="current-password" placeholder="Wpisz hasło..." />
             </div>
 
             <button type="submit" class="btn" style="width: 100%; border: none; cursor: pointer; font-size: 1rem; margin-top: 0.5rem;">
-              Zapisz w bazie D1
+              Zaloguj się do panelu
             </button>
-            <p id="form-msg" style="margin-top: 0.75rem; font-size: 0.9rem; text-align: center;"></p>
+            <p id="login-error" style="color: #dc2626; font-size: 0.88rem; text-align: center; margin-top: 0.85rem; display: none;"></p>
           </form>
         </div>
+      </section>
 
-        <!-- Tabela szkół w bazie D1 -->
-        <div class="card" style="overflow-x: auto;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2 style="margin: 0; font-size: 1.25rem;">📋 Rekordy w bazie D1 (<span id="schools-count">0</span>)</h2>
-            <button id="refresh-btn" style="background: none; border: 1px solid #cbd5e1; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer;">🔄 Odśwież</button>
+      <!-- ZABEZPIECZONA ZAWARTOŚĆ PANELU ADMINA -->
+      <section id="admin-panel-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+          <div>
+            <h1 style="margin: 0 0 0.5rem 0; color: var(--primary);">⚙️ Panel Administracyjny D1</h1>
+            <p style="margin: 0; color: #64748b;">Zarządzanie bazą szkół Cloudflare D1 w czasie rzeczywistym.</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <span id="db-status" class="status-badge">⏳ Łączenie z D1...</span>
+            <a href="/api/schools" target="_blank" class="btn" style="margin: 0; padding: 0.4rem 0.85rem; font-size: 0.85rem;">Podgląd JSON API ↗</a>
+            <button id="logout-btn" class="btn-logout">🚪 Wyloguj</button>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+          <!-- Formularz dodawania szkoły -->
+          <div class="card">
+            <h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem;">➕ Dodaj nową szkołę</h2>
+            <form id="add-school-form">
+              <div class="form-group">
+                <label>Nazwa szkoły *</label>
+                <input type="text" name="name" required placeholder="np. Zespół Szkół nr 3 w Garwolinie" />
+              </div>
+
+              <div class="form-group">
+                <label>Typ placówki *</label>
+                <div class="checkbox-group">
+                  <label><input type="checkbox" name="type_opt" value="liceum" checked /> 🎓 Liceum</label>
+                  <label><input type="checkbox" name="type_opt" value="technikum" /> ⚙️ Technikum</label>
+                  <label><input type="checkbox" name="type_opt" value="branżowa" /> 🔧 Branżowa</label>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label>Szerokość (Lat) *</label>
+                  <input type="number" step="any" name="latitude" required value="51.8955" />
+                </div>
+                <div class="form-group">
+                  <label>Długość (Lng) *</label>
+                  <input type="number" step="any" name="longitude" required value="21.6100" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Adres *</label>
+                <input type="text" name="address" required placeholder="ul. Przykładowa 1, 08-400 Garwolin" />
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label>Liczba uczniów *</label>
+                  <input type="number" name="students_count" required value="450" />
+                </div>
+                <div class="form-group">
+                  <label>Telefon</label>
+                  <input type="text" name="phone" placeholder="+48 25 682 00 00" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Strona WWW</label>
+                <input type="url" name="website" placeholder="https://example.edu.pl" />
+              </div>
+
+              <div class="form-group">
+                <label>Specjalizacje (oddzielone przecinkiem)</label>
+                <input type="text" name="specializations" placeholder="Technik informatyk, Profil matematyczny" />
+              </div>
+
+              <button type="submit" class="btn" style="width: 100%; border: none; cursor: pointer; font-size: 1rem; margin-top: 0.5rem;">
+                Zapisz w bazie D1
+              </button>
+              <p id="form-msg" style="margin-top: 0.75rem; font-size: 0.9rem; text-align: center;"></p>
+            </form>
           </div>
 
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nazwa</th>
-                <th>Typ</th>
-                <th>Uczniowie</th>
-                <th>Akcja</th>
-              </tr>
-            </thead>
-            <tbody id="admin-schools-tbody">
-              <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Pobieranie danych z bazy D1...</td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- Tabela szkół w bazie D1 -->
+          <div class="card" style="overflow-x: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h2 style="margin: 0; font-size: 1.25rem;">📋 Rekordy w bazie D1 (<span id="schools-count">0</span>)</h2>
+              <button id="refresh-btn" style="background: none; border: 1px solid #cbd5e1; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer;">🔄 Odśwież</button>
+            </div>
+
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nazwa</th>
+                  <th>Typ</th>
+                  <th>Uczniowie</th>
+                  <th>Akcja</th>
+                </tr>
+              </thead>
+              <tbody id="admin-schools-tbody">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Pobieranie danych z bazy D1...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
 
     <script is:inline>
+      const AUTH_STORAGE_KEY = 'schools_admin_token';
+
+      const loginScreen = document.getElementById('login-screen');
+      const adminPanelContent = document.getElementById('admin-panel-content');
+      const loginForm = document.getElementById('login-form');
+      const loginError = document.getElementById('login-error');
+      const logoutBtn = document.getElementById('logout-btn');
+
       const tbody = document.getElementById('admin-schools-tbody');
       const countEl = document.getElementById('schools-count');
       const statusEl = document.getElementById('db-status');
       const form = document.getElementById('add-school-form');
       const formMsg = document.getElementById('form-msg');
       const refreshBtn = document.getElementById('refresh-btn');
+
+      function getAuthToken() {
+        return sessionStorage.getItem(AUTH_STORAGE_KEY) || '';
+      }
+
+      async function verifyTokenAndUnlock(token) {
+        try {
+          const res = await fetch('/api/schools?auth_check=1', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+
+          if (res.ok) {
+            sessionStorage.setItem(AUTH_STORAGE_KEY, token);
+            loginScreen.style.display = 'none';
+            adminPanelContent.style.display = 'block';
+            await loadSchoolsFromD1();
+            return true;
+          }
+        } catch (e) {}
+        return false;
+      }
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginError.style.display = 'none';
+
+        const user = document.getElementById('admin-user').value.trim();
+        const pass = document.getElementById('admin-pass').value;
+        const token = btoa(`${user}:${pass}`);
+
+        const ok = await verifyTokenAndUnlock(token);
+        if (!ok) {
+          loginError.textContent = '❌ Nieprawidłowy login lub hasło!';
+          loginError.style.display = 'block';
+        }
+      });
+
+      logoutBtn.addEventListener('click', () => {
+        sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        loginForm.reset();
+        adminPanelContent.style.display = 'none';
+        loginScreen.style.display = 'block';
+      });
 
       async function loadSchoolsFromD1() {
         try {
@@ -238,18 +353,21 @@ import Header from '../components/Header.astro';
           statusEl.textContent = '🔴 Tryb lokalny / brak D1';
           statusEl.style.background = '#fee2e2';
           statusEl.style.color = '#991b1b';
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#dc2626; padding: 1.5rem;">Nie udało się pobrać danych z /api/schools (${err.message}). Na produkcji Cloudflare Pages połączenie z D1 działa automatycznie.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#dc2626; padding: 1.5rem;">Nie udało się pobrać danych z /api/schools (${err.message}).</td></tr>`;
         }
       }
 
       window.deleteSchool = async function(id) {
         if (!confirm('Czy na pewno chcesz usunąć szkołę #' + id + ' z bazy D1?')) return;
         try {
-          const res = await fetch('/api/schools?id=' + id, { method: 'DELETE' });
+          const res = await fetch('/api/schools?id=' + id, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + getAuthToken() }
+          });
           if (res.ok) {
             await loadSchoolsFromD1();
           } else {
-            alert('Błąd podczas usuwania rekordu.');
+            alert('Błąd autoryzacji lub usuwania rekordu.');
           }
         } catch (e) {
           alert('Błąd sieci: ' + e.message);
@@ -288,7 +406,10 @@ import Header from '../components/Header.astro';
         try {
           const res = await fetch('/api/schools', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + getAuthToken()
+            },
             body: JSON.stringify(payload)
           });
 
@@ -298,7 +419,7 @@ import Header from '../components/Header.astro';
             form.reset();
             await loadSchoolsFromD1();
           } else {
-            throw new Error('Serwer zwrócił status ' + res.status);
+            throw new Error('Brak uprawnień lub błąd serwera (' + res.status + ')');
           }
         } catch (err) {
           formMsg.style.color = '#dc2626';
@@ -307,7 +428,14 @@ import Header from '../components/Header.astro';
       });
 
       refreshBtn.addEventListener('click', loadSchoolsFromD1);
-      document.addEventListener('DOMContentLoaded', loadSchoolsFromD1);
+
+      // Sprawdzenie, czy w bieżącej sesji karty użytkownik był już zalogowany
+      document.addEventListener('DOMContentLoaded', () => {
+        const savedToken = getAuthToken();
+        if (savedToken) {
+          verifyTokenAndUnlock(savedToken);
+        }
+      });
     </script>
   </body>
 </html>
