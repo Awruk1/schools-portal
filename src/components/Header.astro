@@ -1,6 +1,12 @@
 ---
 ---
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#2563eb" />
+
 <header class="main-header">
+  <div id="offline-banner" style="display: none; background: #f59e0b; color: white; text-align: center; padding: 0.35rem; font-size: 0.85rem; font-weight: 600;">
+    ⚡ Tryb Offline aktywny – przeglądasz zapisaną wersję PWA
+  </div>
   <div class="nav-container">
     <a href="/" class="logo">🏫 Szkoły Garwolin</a>
     
@@ -13,6 +19,7 @@
     <nav class="nav-links" id="nav-links">
       <a href="/">Strona Główna</a>
       <a href="/schools">Baza Szkół i Mapa</a>
+      <a href="/analytics">📊 Analytics</a>
       <a href="/admin">⚙️ Panel Admina</a>
     </nav>
   </div>
@@ -22,7 +29,7 @@
   .main-header {
     background-color: white;
     border-bottom: 1px solid #e2e8f0;
-    padding: 1rem 0;
+    padding: 0 0 1rem 0;
     position: sticky;
     top: 0;
     z-index: 9999;
@@ -30,7 +37,7 @@
   .nav-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 1rem 2rem 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -43,7 +50,8 @@
   }
   .nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 1.75rem;
+    align-items: center;
   }
   .nav-links a {
     text-decoration: none;
@@ -55,7 +63,6 @@
     color: var(--primary);
   }
   
-  /* Style dla przycisku hamburgera (domyślnie ukryty na komputerach) */
   .hamburger {
     display: none;
     flex-direction: column;
@@ -72,7 +79,6 @@
     transition: all 0.3s ease;
   }
 
-  /* Breakpoint dla telefonów i małych tabletów */
   @media (max-width: 768px) {
     .hamburger {
       display: flex;
@@ -80,6 +86,7 @@
     .nav-links {
       display: none;
       flex-direction: column;
+      align-items: flex-start;
       position: absolute;
       top: 100%;
       left: 0;
@@ -88,7 +95,7 @@
       padding: 1rem 2rem;
       border-bottom: 1px solid #e2e8f0;
       box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-      gap: 1.5rem;
+      gap: 1.25rem;
     }
     .nav-links.active {
       display: flex;
@@ -97,13 +104,56 @@
 </style>
 
 <script is:inline>
-  // Prosty skrypt odpalający menu hamburgerowe
   document.addEventListener('DOMContentLoaded', () => {
+    // 1. Obsługa menu mobilnego (hamburger)
     const hamburger = document.getElementById('hamburger');
     const navLinks = document.getElementById('nav-links');
     
     hamburger?.addEventListener('click', () => {
       navLinks.classList.toggle('active');
     });
+
+    // 2. Rejestracja Service Workera (PWA + Offline Mode)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    // Wskaźnik trybu Offline
+    const offlineBanner = document.getElementById('offline-banner');
+    function updateOnlineStatus() {
+      if (offlineBanner) {
+        offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // 3. Automatyczne zliczanie Analytics (widoki mapy i popularne szkoły)
+    function trackMetric(key) {
+      // Zapis lokalny (fallback)
+      try {
+        const local = JSON.parse(localStorage.getItem('local_analytics') || '{}');
+        local[key] = (local[key] || 0) + 1;
+        localStorage.setItem('local_analytics', JSON.stringify(local));
+      } catch (e) {}
+
+      // Zapis w bazie Cloudflare D1
+      fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key })
+      }).catch(() => {});
+    }
+
+    const path = window.location.pathname.replace(/\/$/, '');
+    if (path === '/schools') {
+      trackMetric('map_views');
+    } else if (path.startsWith('/schools/')) {
+      const schoolId = path.split('/').pop();
+      if (schoolId) {
+        trackMetric(`school_${schoolId}`);
+      }
+    }
   });
 </script>
