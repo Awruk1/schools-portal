@@ -9,8 +9,6 @@ import { schools } from '../../data/schools.js';
 const allSpecs = Array.from(
   new Set(schools.flatMap((s) => s.specializations || []))
 ).sort((a, b) => a.localeCompare(b, 'pl'));
-
-const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
 ---
 
 <html lang="pl">
@@ -47,29 +45,6 @@ const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
         border-radius: 8px;
         font-size: 1rem;
         box-sizing: border-box;
-      }
-      .pl-chars-bar {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        flex-wrap: wrap;
-        margin-top: 0.5rem;
-      }
-      .pl-char-btn {
-        background: #f8fafc;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        padding: 0.2rem 0.55rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #1e293b;
-        cursor: pointer;
-        transition: all 0.15s;
-      }
-      .pl-char-btn:hover {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
       }
       .slider-box {
         background: #f8fafc;
@@ -197,25 +172,16 @@ const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
         <div class="filters-top">
           <div>
             <label for="search-input" style="display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem;">
-              🔍 Wyszukaj szkołę (obsługa polskich znaków UTF-8):
+              🔍 Wyszukaj szkołę po nazwie, adresie lub profilu:
             </label>
             <input 
-              type="text" 
+              type="search" 
               id="search-input" 
               class="search-input" 
               lang="pl"
               autocomplete="off"
-              placeholder="np. Żelechów, Miętne, Łaskarzew, Kościuszki, żywienia..." 
+              placeholder="np. Żelechów, Miętne, Łaskarzew, Kościuszki..." 
             />
-            <!-- Pasek szybkiego wstawiania polskich znaków UTF-8 -->
-            <div class="pl-chars-bar">
-              <span style="font-size: 0.78rem; color: #64748b; margin-right: 0.2rem;">Polskie znaki:</span>
-              {polishChars.map((ch) => (
-                <button type="button" class="pl-char-btn" data-char={ch} title={`Wstaw znak "${ch}"`}>
-                  {ch}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div class="slider-box">
@@ -324,7 +290,6 @@ const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
       const studentsSlider = document.getElementById('students-slider');
       const sliderValue = document.getElementById('slider-value');
       const typeButtons = document.querySelectorAll('.filter-btn');
-      const plCharButtons = document.querySelectorAll('.pl-char-btn');
       const resetFiltersBtn = document.getElementById('reset-filters-btn');
       const visibleCountEl = document.getElementById('visible-count');
       const totalCountEl = document.getElementById('total-count');
@@ -337,7 +302,7 @@ const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
       const clearCompareBtn = document.getElementById('clear-compare-btn');
       const scrollToCompareBtn = document.getElementById('scroll-to-compare-btn');
 
-      // Pełna normalizacja UTF-8 (NFC) dla języka polskiego
+      // Normalizacja UTF-8 (NFC) dla języka polskiego
       function normalizeUtf8(str) {
         return (str || '')
           .toString()
@@ -345,7 +310,7 @@ const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
           .toLocaleLowerCase('pl-PL');
       }
 
-      // Wersja pomocnicza zamieniająca polskie znaki na podstawowe (w tym 'ł' -> 'l')
+      // Usuwanie polskich znaków diakrytycznych (w tym 'ł' -> 'l')
       function stripPolishDiacritics(str) {
         const plMap = {
           'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n',
@@ -356,6 +321,30 @@ const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '');
       }
+
+      // Bezpośrednia obsługa polskich znaków z klawiatury (Alt + a/c/e/l/n/o/s/x/z),
+      // gdy maszyna wirtualna lub przeglądarka ma ustawiony angielski układ klawiatury
+      const altPolishMap = {
+        'a': 'ą', 'c': 'ć', 'e': 'ę', 'l': 'ł', 'n': 'ń',
+        'o': 'ó', 's': 'ś', 'x': 'ź', 'z': 'ż',
+        'A': 'Ą', 'C': 'Ć', 'E': 'Ę', 'L': 'Ł', 'N': 'Ń',
+        'O': 'Ó', 'S': 'Ś', 'X': 'Ź', 'Z': 'Ż'
+      };
+
+      searchInput.addEventListener('keydown', (e) => {
+        const isAltPressed = e.altKey || (e.getModifierState && e.getModifierState('AltGraph'));
+        if (isAltPressed && altPolishMap[e.key]) {
+          e.preventDefault();
+          const char = altPolishMap[e.key];
+          const start = searchInput.selectionStart ?? searchInput.value.length;
+          const end = searchInput.selectionEnd ?? searchInput.value.length;
+          const currentVal = searchInput.value;
+
+          searchInput.value = currentVal.slice(0, start) + char + currentVal.slice(end);
+          searchInput.setSelectionRange(start + char.length, start + char.length);
+          applyAllFilters();
+        }
+      });
 
       function getSelectedSpecs() {
         return Array.from(document.querySelectorAll('.spec-checkbox:checked')).map(cb => cb.value);
@@ -383,12 +372,11 @@ const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
           const students = parseInt(item.getAttribute('data-students') || '0', 10);
           const specs = JSON.parse(item.getAttribute('data-specs') || '[]');
 
-          // Łączymy nazwę, adres, typ i specjalizacje do przeszukiwania UTF-8
           const fullTextRaw = `${name} ${address} ${types} ${specs.join(' ')}`;
           const fullTextUtf8 = normalizeUtf8(fullTextRaw);
           const fullTextStripped = stripPolishDiacritics(fullTextRaw);
 
-          // 1. Filtr wyszukiwarki (obsługuje dokładny zapis UTF-8 z polskimi znakami oraz zapis bez ogonków)
+          // 1. Filtr wyszukiwarki (z polskimi znakami UTF-8 oraz bez ogonków)
           const matchesQuery = !rawQuery || 
                                fullTextUtf8.includes(queryUtf8) || 
                                fullTextStripped.includes(queryStripped);
@@ -412,27 +400,11 @@ const polishChars = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ź', 'ż'];
 
         visibleCountEl.textContent = visibleIds.size;
 
-        // Aktualizacja pinezek na mapie
         if (typeof window.updateMapMarkers === 'function') {
           const filteredSchools = allSchools.filter(s => visibleIds.has(Number(s.id)));
           window.updateMapMarkers(filteredSchools);
         }
       }
-
-      // Wstawianie polskiego znaku UTF-8 w miejsce kursora po kliknięciu przycisku
-      plCharButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const char = btn.getAttribute('data-char');
-          const start = searchInput.selectionStart ?? searchInput.value.length;
-          const end = searchInput.selectionEnd ?? searchInput.value.length;
-          const currentVal = searchInput.value;
-
-          searchInput.value = currentVal.slice(0, start) + char + currentVal.slice(end);
-          searchInput.focus();
-          searchInput.setSelectionRange(start + char.length, start + char.length);
-          applyAllFilters();
-        });
-      });
 
       // Obsługa Tabeli Porównawczej (2-3 szkoły)
       function updateComparisonView() {
