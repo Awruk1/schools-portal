@@ -1,4 +1,3 @@
-// Funkcje pomocnicze Web Crypto API (kodowanie SHA-256 oraz podpisywanie tokenów JWT w Cloudflare)
 const enc = new TextEncoder();
 
 function base64UrlEncode(str) {
@@ -59,26 +58,6 @@ async function verifyJwt(token, secret) {
   }
 }
 
-// Odczyt natywnego tokenu JWT z Cloudflare Access (Zero Trust), jeśli jest włączony na domenie
-function getCloudflareAccessUser(request) {
-  const cfEmail = request.headers.get("Cf-Access-Authenticated-User-Email");
-  if (cfEmail) return { email: cfEmail, method: "Cloudflare Access (Zero Trust)" };
-
-  const cookieHeader = request.headers.get("Cookie") || "";
-  const match = cookieHeader.match(/CF_Authorization=([^;]+)/);
-  const cfJwt = request.headers.get("Cf-Access-Jwt-Assertion") || (match ? match[1] : null);
-
-  if (cfJwt) {
-    try {
-      const payload = JSON.parse(base64UrlDecode(cfJwt.split(".")[1]));
-      if (payload && payload.email) {
-        return { email: payload.email, method: "Cloudflare Access JWT" };
-      }
-    } catch {}
-  }
-  return null;
-}
-
 export async function onRequest(context) {
   const db = context.env.DB;
   const { request } = context;
@@ -99,11 +78,7 @@ export async function onRequest(context) {
     return new Response(JSON.stringify({ error: "Brak połączenia z bazą D1" }), { status: 500, headers });
   }
 
-  // Funkcja weryfikująca autoryzację (sprawdza Cloudflare Access JWT lub nasz podpisany token JWT)
   async function getAuthenticatedAdmin(req) {
-    const cfUser = getCloudflareAccessUser(req);
-    if (cfUser) return cfUser;
-
     const authHeader = req.headers.get("Authorization") || "";
     if (authHeader.startsWith("Bearer ")) {
       const token = authHeader.replace("Bearer ", "").trim();
@@ -119,7 +94,7 @@ export async function onRequest(context) {
   const action = url.searchParams.get("action");
 
   try {
-    // 1. SPRAWDZENIE STATUSU SESJI / TOKENU JWT
+    // 1. SPRAWDZENIE STATUSU SESJI JWT
     if (url.searchParams.get("auth_check") === "1") {
       const admin = await getAuthenticatedAdmin(request);
       if (admin) {
@@ -131,7 +106,7 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ authenticated: false }), { status: 401, headers });
     }
 
-    // 2. GENEROWANIE I WYSYŁKA 6-CYFROWEGO TOKENU OTP NA E-MAIL
+    // 2. GENEROWANIE I WYSYŁKA 6-CYFROWEGO TOKENU OTP NA DOWOLNY E-MAIL
     if (request.method === "POST" && action === "request_otp") {
       const { email } = await request.json();
       if (!email || !email.includes("@")) {
@@ -140,7 +115,6 @@ export async function onRequest(context) {
 
       const normalizedEmail = email.trim().toLowerCase();
 
-      // Tworzymy w D1 tabelę na zahashowane tokeny jednorazowe (OTP)
       await db.prepare(`
         CREATE TABLE IF NOT EXISTS auth_tokens (
           email TEXT PRIMARY KEY,
@@ -149,14 +123,12 @@ export async function onRequest(context) {
         )
       `).run();
 
-      // Losujemy bezpieczny 6-cyfrowy kod OTP za pomocą Cloudflare Web Crypto
       const randomArray = new Uint32Array(1);
       crypto.getRandomValues(randomArray);
       const otpCode = String(100000 + (randomArray[0] % 900000));
 
-      // Kodujemy (hashujemy) token przez SHA-256 przed zapisem w bazie D1
       const tokenHash = await sha256Hex(`${normalizedEmail}:${otpCode}:${JWT_SECRET}`);
-      const expiresAt = Date.now() + 10 * 60 * 1000; // ważny 10 minut
+      const expiresAt = Date.now() + 10 * 60 * 1000;
 
       await db.prepare(`
         INSERT INTO auth_tokens (email, token_hash, expires_at)
@@ -166,10 +138,41 @@ export async function onRequest(context) {
           expires_at = excluded.expires_at
       `).bind(normalizedEmail, tokenHash, expiresAt).run();
 
+      const emailSubject = `Twój kod logowania (Token OTP): ${otpCode}`;
+      const emailHtml = `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+          <h2 style="color: #1e293b; margin-top: 0;">🏫 Panel Administracyjny - Szkoły Garwolin</h2>
+          <p style="color: #475569;">Twój jednorazowy token autoryzacyjny (ważny przez 10 minut):</p>
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; text-align: center; margin: 20px 0;">
+            <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #2563eb;">${otpCode}</span>
+          </div>
+          <p style="color: #64748b; font-size: 12px;">Token został zakodowany algorytmem SHA-256 w bazie Cloudflare D1.</p>
+        </div>
+      `;
+
       let emailSent = false;
 
-      // Wysyłka maila (obsługuje klucz RESEND_API_KEY w Cloudflare lub natywny MailChannels)
-      if (context.env.RESEND_API_KEY) {
+      // Wysyłka na dowolny adres e-mail przez mostek Google Apps Script (MAIL_WEBHOOK_URL)
+      if (context.env.MAIL_WEBHOOK_URL) {
+        try {
+          const webhookRes = await fetch(context.env.MAIL_WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              to: normalizedEmail,
+              subject: emailSubject,
+              html: emailHtml
+            }),
+            redirect: "follow"
+          });
+          if (webhookRes.ok || webhookRes.status === 302) {
+            emailSent = true;
+          }
+        } catch {}
+      }
+
+      // Zapasowa wysyłka przez Resend (jeśli skonfigurowano i jeszcze nie wysłano)
+      if (!emailSent && context.env.RESEND_API_KEY) {
         try {
           const mailRes = await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -180,23 +183,28 @@ export async function onRequest(context) {
             body: JSON.stringify({
               from: "Szkoły Garwolin <onboarding@resend.dev>",
               to: [normalizedEmail],
-              subject: `Twój kod logowania (Token OTP): ${otpCode}`,
-              html: `<h2>Panel Administracyjny - Szkoły Powiatu Garwolińskiego</h2>
-                     <p>Twój jednorazowy token logowania (ważny 10 minut):</p>
-                     <h1 style="letter-spacing: 4px; color: #2563eb;">${otpCode}</h1>`
+              subject: emailSubject,
+              html: emailHtml
             })
           });
           emailSent = mailRes.ok;
         } catch {}
       }
 
+      if (!emailSent) {
+        return new Response(
+          JSON.stringify({
+            error: "Nie udało się wysłać wiadomości e-mail. Sprawdź zmienną MAIL_WEBHOOK_URL w ustawieniach Cloudflare."
+          }),
+          { status: 500, headers }
+        );
+      }
+
+      // Zwracamy wyłącznie potwierdzenie wysłania – kod NIGDY nie trafia do przeglądarki
       return new Response(
         JSON.stringify({
           success: true,
-          email: normalizedEmail,
-          emailSent,
-          // Jeśli w środowisku testowym nie podpięto zewnętrznego klucza SMTP, zwracamy podgląd wygenerowanego tokenu
-          demoOtpPreview: emailSent ? undefined : otpCode
+          email: normalizedEmail
         }),
         { status: 200, headers }
       );
@@ -225,10 +233,8 @@ export async function onRequest(context) {
         return new Response(JSON.stringify({ error: "Nieprawidłowy kod tokenu!" }), { status: 401, headers });
       }
 
-      // Usuwamy zużyty jednorazowy kod z bazy D1
       await db.prepare("DELETE FROM auth_tokens WHERE email = ?").bind(normalizedEmail).run();
 
-      // Generujemy kryptograficznie podpisany token JWT (ważny 8 godzin)
       const jwtToken = await signJwt(
         {
           email: normalizedEmail,
@@ -275,7 +281,7 @@ export async function onRequest(context) {
       return new Response(JSON.stringify(parsed), { status: 200, headers });
     }
 
-    // BLOKADA AUTORYZACYJNA JWT DLA ZAPISU I USUWANIA (POST / DELETE)
+    // BLOKADA AUTORYZACYJNA JWT DLA ZAPISU I USUWANIA
     const admin = await getAuthenticatedAdmin(request);
     if (!admin) {
       return new Response(

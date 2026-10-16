@@ -363,14 +363,14 @@ import Header from '../components/Header.astro';
         return false;
       }
 
-      // KROK 1: Wysłanie żądania o wygenerowanie i zakodowanie tokenu OTP
+      // KROK 1: Wysłanie tokenu OTP na podany adres e-mail
       step1Form.addEventListener('submit', async (e) => {
         e.preventDefault();
         loginError.style.display = 'none';
         currentEmail = emailInput.value.trim();
 
         const sendBtn = document.getElementById('send-otp-btn');
-        sendBtn.textContent = '⏳ Generowanie i szyfrowanie tokenu...';
+        sendBtn.textContent = '⏳ Wysyłanie tokenu na e-mail...';
         sendBtn.disabled = true;
 
         try {
@@ -381,21 +381,12 @@ import Header from '../components/Header.astro';
           });
           const data = await res.json();
 
-          if (!res.ok) throw new Error(data.error || 'Błąd generowania tokenu');
+          if (!res.ok) throw new Error(data.error || 'Błąd wysyłki tokenu');
 
           step1Form.style.display = 'none';
           step2Form.style.display = 'block';
 
-          if (data.emailSent) {
-            otpDeliveryInfo.innerHTML = `✅ Wysłano 6-cyfrowy token na adres <strong>${currentEmail}</strong>. Sprawdź skrzynkę odbiorczą.`;
-          } else {
-            otpDeliveryInfo.innerHTML = `
-              📨 Token dla <strong>${currentEmail}</strong> został wygenerowany i zahashowany (SHA-256) w bazie Cloudflare D1.<br>
-              <span style="display:inline-block; margin-top:0.35rem; font-size: 0.95rem;">
-                Twój jednorazowy kod dostępu: <strong style="font-size:1.15rem; color:#2563eb; letter-spacing:2px;">${data.demoOtpPreview}</strong>
-              </span>
-            `;
-          }
+          otpDeliveryInfo.innerHTML = `✅ Jednorazowy 6-cyfrowy token został wysłany na adres <strong>${currentEmail}</strong>. Sprawdź swoją skrzynkę e-mail (oraz folder Spam).`;
           otpInput.focus();
         } catch (err) {
           loginError.textContent = '❌ ' + err.message;
@@ -406,7 +397,7 @@ import Header from '../components/Header.astro';
         }
       });
 
-      // KROK 2: Weryfikacja 6-cyfrowego kodu i odebranie podpisanego tokenu JWT
+      // KROK 2: Weryfikacja 6-cyfrowego kodu z maila
       step2Form.addEventListener('submit', async (e) => {
         e.preventDefault();
         loginError.style.display = 'none';
